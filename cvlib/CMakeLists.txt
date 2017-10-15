@@ -3,5 +3,8 @@ project(cvlib)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES library.cpp library.h)
-add_library(cvlib SHARED ${SOURCE_FILES})
+find_package( OpenCV REQUIRED )
+
+add_subdirectory (lib)
+add_subdirectory (test)
+
