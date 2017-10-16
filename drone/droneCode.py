@@ -5,20 +5,20 @@ import socket
 import time
 from navigation import NavClass
 from threading import Thread
-import binding
+from binding import lib as Clib
 
 
 nav = None
 vehicle = None
+lib = None
 
 def main():
     global nav
     global vehicle
-
-    print "Starting simulator (SITL)"
+    global lib
 
     # Get some vehicle attributes (state)
-    print "Connected Successfully"
+    print "\nConnected Successfully"
     print " GPS: %s" % vehicle.gps_0
     print " Battery: %s" % vehicle.battery
     print " Last Heartbeat: %s" % vehicle.last_heartbeat
@@ -79,13 +79,19 @@ def flySquare(dist=5):
 def initilize():
     global vehicle
     global nav
+    global lib
 
     try:
+        print "Connecting to vehicle..."
         vehicle = connect('127.0.0.1:14550', wait_ready=True)  #Connect to vehicle and initialize home location
         vehicle.home_location = vehicle.location.global_frame
 
+        print "Initializing C++ bindings"
+        lib = Clib()
+        lib.libtest()
+
+        print "\nInitializing navigation"
         nav = NavClass(vehicle)
-        print "Navigation initilized"
 
         main()
     # Bad TCP connection
