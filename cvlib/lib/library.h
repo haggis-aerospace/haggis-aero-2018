@@ -3,5 +3,6 @@
 
 void hello();
 void libtest();
+void imgRecTest();
 
 #endif
