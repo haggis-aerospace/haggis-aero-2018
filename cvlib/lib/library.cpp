@@ -20,10 +20,6 @@ extern "C"
          std::cout << cv::getBuildInformation();
     }
 }
-<<<<<<< HEAD
-void libtest() {
-    std::cout << cv::getBuildInformation();
-} 
 
 
 //ERStat extraction is done in parallel for different channels
@@ -246,12 +242,3 @@ void imgRecTest() {
 }
 
 
-
-
-
-
-
-
-
-=======
->>>>>>> af490d1f25618882bac5dc4746ce9170b3c995e4
