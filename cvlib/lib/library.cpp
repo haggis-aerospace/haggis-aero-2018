@@ -11,9 +11,16 @@ using namespace std;
 using namespace cv;
 using namespace cv::text;
 
-void hello() {
-    std::cout << "Hello, World!" << std::endl;
+extern "C"
+{
+    void hello() {
+        std::cout << "Hello, World!" << std::endl;
+    }
+    void libtest() {
+         std::cout << cv::getBuildInformation();
+    }
 }
+<<<<<<< HEAD
 void libtest() {
     std::cout << cv::getBuildInformation();
 } 
@@ -246,3 +253,5 @@ void imgRecTest() {
 
 
 
+=======
+>>>>>>> af490d1f25618882bac5dc4746ce9170b3c995e4
