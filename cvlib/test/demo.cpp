@@ -5,7 +5,7 @@ int main(int argc, char** argv ) {
     camLib* camAPI = new camLib();
     while(true)
     {
-            camAPI->findLetter(camAPI->getImg());
+            camAPI->findLetter(camAPI->getImg(), true);
             //camAPI->getBounds(camAPI->getImg());
     }
 }

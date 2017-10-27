@@ -7,6 +7,7 @@
 #include <opencv2/text.hpp>
 #include <stddef.h>
 #include "opencv2/text/ocr.hpp"
+#include <ctime>
 
 #ifndef CAMLIB_H
 #define CAMLIB_H
@@ -28,12 +29,13 @@ private:
     Ptr<OCRTesseract> tess;
     CvCapture* cap;
     Mat lastImg;
+    std::clock_t timer;
 public:
     camLib();
     ~camLib();
     
     Mat getImg();
-    Letter findLetter(Mat img, bool display=false, int min_confidence=70);
+    std::vector<Letter> findLetter(Mat img, bool display=false, int min_confidence=70);
 
     std::vector<cv::Mat> getBounds(Mat img, bool display=false);
     std::vector<cv::Mat> getBounds(Mat* img, bool display=false);
@@ -44,7 +46,7 @@ public:
 extern "C"{
     camLib* py_camLib();
     Mat py_getImg(camLib* lib);
-    Letter py_findLetter(camLib* lib, Mat *img, bool display=false, int min_confidence=70);
+    std::vector<Letter> py_findLetter(camLib* lib, Mat *img, bool display=false, int min_confidence=70);
 }
 
 #endif // CAMLIB_H
