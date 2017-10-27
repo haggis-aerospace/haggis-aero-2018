@@ -138,7 +138,7 @@ vector<Letter> camLib::findLetter(Mat img, bool display, int min_confidence)
                 let.push_back(Letter());    //Add letter to vector of type Letter
                 let.at(let.size()-1).letter = res.c_str();
                 
-                /if(display){imshow(("R"+to_string(i)),scan); waitKey(5);}
+                //if(display){imshow(("R"+to_string(i)),scan); waitKey(5);}
             }
             delete rects;   //Free up memory pointers
             delete texts;
