@@ -1,5 +1,3 @@
-#include <tesseract/baseapi.h>
-#include <leptonica/allheaders.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>

@@ -8,7 +8,7 @@ using namespace cv::text;
 camLib::camLib()
 {
     cap = cvCaptureFromCAM(0);  //Creating capture instance and initilizing OCRTesseract
-    tess = OCRTesseract::create(NULL, NULL, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", tesseract::OEM_DEFAULT, tesseract::PSM_SINGLE_CHAR);
+    tess = OCRTesseract::create(NULL, NULL, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 3, 10);
     timer = std::clock();   //For calculating FPS
 }
 
@@ -32,11 +32,17 @@ vector<cv::Mat> camLib::getBounds(Mat* img, bool display){ return getBounds(*img
 //Returns array of Mats containing possible letters 
 vector<cv::Mat> camLib::getBounds(Mat img, bool display)
 {
+    //Main configuration values
+    Scalar WHITE_MIN(0  ,0 ,90 ); //initial white filter min/max HSV
+    Scalar WHITE_MAX(180,65,255);
+    int CONTOUR_SIZE_MIN = 400;   //Remove contours smaller than this
+    double RATIO_THRESHOLD = .8;  //Removes contours with too high width:height ratio (value 0-1)
+    
     Mat hsv;    //Conversion to HSV colour space
     cvtColor(img, hsv, CV_BGR2HSV);
     GaussianBlur(hsv, hsv, Size(15,15), 0, 0);  //Smooth image with blur
         
-    inRange(hsv, Scalar(0, 0, 90), Scalar(180, 65, 255), hsv);  //Filter out all colours except white/light grey
+    inRange(hsv, WHITE_MIN, WHITE_MAX, hsv);  //Filter out all colours except white/light grey
     if(display) imshow("Filtered HSV", hsv);
     
     std::vector<Mat> channels;
@@ -57,12 +63,12 @@ vector<cv::Mat> camLib::getBounds(Mat img, bool display)
     std::vector<cv::Mat> output;
     // draw the contours to a copy of the input image:
     for( int i = 0; i< contoursH.size(); i++ ){
-        if(contourArea(contoursH[i]) < 400) continue; //Filter small contours
+        if(contourArea(contoursH[i]) < CONTOUR_SIZE_MIN) continue; //Filter small contours
         if(hierarchyH[i][3] < 0) continue;  //Hollow out thick contours
         
         cv::Rect boundRect = boundingRect(contoursH[i]);    
         double ratio = boundRect.width/boundRect.height;
-        if(ratio < 0.2 || ratio > 1.8) continue;    //Filter rects too wide or tall
+        if(ratio < 1-RATIO_THRESHOLD || ratio > 1+RATIO_THRESHOLD) continue;    //Filter rects too wide or tall
         
         Mat cropped = origHue(boundRect); //Crop to rect
         
@@ -73,7 +79,7 @@ vector<cv::Mat> camLib::getBounds(Mat img, bool display)
         if(contoursOut.size() <= 0) continue;
         vector<Rect> croppedRects;
         for(int y=0;y<contoursOut.size();y++) croppedRects.push_back(boundingRect(contoursOut.at(y)));
-        double min=1000;
+        double min=10000;
         Rect target = croppedRects.at(0);
         Point centre(boundRect.width/2, boundRect.height/2);
         for(int y=0;y<croppedRects.size();y++)
@@ -138,7 +144,7 @@ vector<Letter> camLib::findLetter(Mat img, bool display, int min_confidence)
                 let.push_back(Letter());    //Add letter to vector of type Letter
                 let.at(let.size()-1).letter = res.c_str();
                 
-                //if(display){imshow(("R"+to_string(i)),scan); waitKey(5);}
+                if(display){imshow(("R"+to_string(i)),scan); waitKey(5);}
             }
             delete rects;   //Free up memory pointers
             delete texts;
