@@ -15,8 +15,9 @@ using namespace cv::text;
 
 
 struct Letter {
-    const char* letter; //Letter as recognised by tesseract
-    int size;    //Size of bounding box
+    char letter; //Letter as recognised by tesseract
+    int width;    //Size of bounding box
+    int height;
     int pos;     //Horizontal position as % from left of image
 };
 
@@ -35,8 +36,8 @@ public:
     Mat getImg();
     std::vector<Letter> findLetter(Mat img, bool display=false, int min_confidence=70);
 
-    std::vector<cv::Mat> getBounds(Mat img, bool display=false);
-    std::vector<cv::Mat> getBounds(Mat* img, bool display=false);
+    std::vector< std::pair<cv::Mat, cv::Point>> getBounds(Mat img, bool display=false);
+    std::vector< std::pair<cv::Mat, cv::Point>> getBounds(Mat* img, bool display=false);
 };
 
 
