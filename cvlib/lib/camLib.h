@@ -22,30 +22,32 @@ struct Letter {
 };
 
 
-class camLib
-{
+class camLib {
 private:
     Ptr<OCRTesseract> tess;
-    CvCapture* cap;
-    Mat lastImg;
+    CvCapture *cap;
+    Mat *lastImg;
     std::clock_t timer;
 public:
     camLib();
-    ~camLib();
-    
-    Mat getImg();
-    std::vector<Letter> findLetter(Mat img, bool display=false, int min_confidence=70);
 
-    std::vector< std::pair<cv::Mat, cv::Point>> getBounds(Mat img, bool display=false);
-    std::vector< std::pair<cv::Mat, cv::Point>> getBounds(Mat* img, bool display=false);
+    ~camLib();
+
+    Mat* getImg();
+
+    std::vector<Letter> findLetter(Mat img, bool display = false, int min_confidence = 70);
+
+    std::vector<std::pair<cv::Mat, cv::Point>> getBounds(Mat img, bool display = false);
+
+    std::vector<std::pair<cv::Mat, cv::Point>> getBounds(Mat *img, bool display = false);
 };
 
 
 //Python Bindings
-extern "C"{
-    camLib* py_camLib();
-    Mat py_getImg(camLib* lib);
-    std::vector<Letter> py_findLetter(camLib* lib, Mat *img, bool display=false, int min_confidence=70);
+extern "C" {
+camLib *py_camLib();
+Mat py_getImg(camLib *lib);
+std::vector<Letter> py_findLetter(camLib *lib, Mat *img, bool display = false, int min_confidence = 70);
 }
 
 #endif // CAMLIB_H

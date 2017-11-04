@@ -1,14 +1,21 @@
 #include <iostream>
+#include <character_detector.h>
 #include "library.h"
 
 int main(int argc, char** argv ) {
-    camLib* camAPI = new camLib();
+    auto camAPI = new camLib();
+    auto det = new character_detector(0.3f,0.001f, 0.7f);
+    namedWindow( "Display window", WINDOW_AUTOSIZE );
     while(true)
     {
-            std::vector<Letter> lettrs = camAPI->findLetter(camAPI->getImg(), true);
-            for(int i=0; i<lettrs.size(); i++)
-                printf("Found: %c at %i%% to the left. Size: %i,%i  Ratio: %.2f\n", lettrs.at(i).letter, lettrs.at(i).pos, lettrs.at(i).width, lettrs.at(i).height, ((float)lettrs.at(i).width/(float)lettrs.at(i).height));
-            if(lettrs.size()>0) std::cout << "---" << std::endl;
-            //camAPI->getBounds(camAPI->getImg());
+        cv::Ptr<cv::Mat> im = camAPI->getImg();
+                               // Wait for a keystroke in the window
+
+        std::vector<cv::Rect> bboxes = det->character_bounds(*im);
+        for(int i=0; i<bboxes.size(); i++) {
+                cv::rectangle(*im, bboxes[i], cv::Scalar(255, 0, 0));
+        }
+        cv::imshow("Display window", *im);
+        waitKey(25);
     }
 }
