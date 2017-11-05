@@ -9,6 +9,8 @@
 #include <vector>
 #include <opencv2/core/types.hpp>
 #include <opencv2/text.hpp>
+#include <FTPyramid.hpp>
+#include <Segmenter.h>
 
 class character_detector {
 
@@ -26,8 +28,8 @@ private:
     double max_area;
     double min_confidence;
 
-    cv::Ptr<cv::text::ERFilter> filter1;
-    cv::Ptr<cv::text::ERFilter> filter2;
+    cv::Ptr<cmp::FTPyr> ft;
+    cv::Ptr<cmp::Segmenter> seg;
 };
 
 
