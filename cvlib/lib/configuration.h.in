@@ -1,0 +1,10 @@
+//
+// Created by David Helekal on 06/11/2017.
+//
+
+#ifndef CVLIB_CONFIGURATION_H_IN
+#define CVLIB_CONFIGURATION_H_IN
+
+#define RESOURCES_PATH "@RESOURCES_PATH@"
+
+#endif //CVLIB_CONFIGURATION_H_IN
