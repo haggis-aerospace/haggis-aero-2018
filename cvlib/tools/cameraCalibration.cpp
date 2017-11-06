@@ -2,6 +2,7 @@
 
 const float CALIB_SQUARE_SIZE = 0.019f;
 const Size BOARD_DIMENSIONS = Size(6,9);
+const vector<int> CAM_INDX = {1,2};
 
 void createKnownBoardPosition(Size boardSize, float squareEdgeLength, vector<Point3f>& corners){
 	for (int i = 0; i<boardSize.height; i++){
@@ -73,58 +74,71 @@ bool saveCameraCalibration(String file, Mat cameraMatrix, Mat distanceCoefficien
 
 
 int main(int argc, char** argv){
-	Mat frame, drawToFrame;
-	Mat cameraMatrix = Mat::eye(3,3,CV_64F);
-	Mat distanceCoefficients;
+	vector<Mat> frame, drawToFrame;
+	vector<Mat> cameraMatrix;
+	vector<Mat> distanceCoefficients;
 
-	vector<Mat> savedImages;
-	vector<vector<Point2f>> markerCorners, rejectedCandidates;
+	vector<vector<Mat>> savedImages;
+	vector<vector<vector<Point2f>>> markerCorners, rejectedCandidates;
 
-	VideoCapture cam(1);
+	vector<VideoCapture> cam;
 
-	if (!cam.read(frame)){
-		return 0;
+	for(int i = 0; i < CAM_INDX.size(); i++){
+		cameraMatrix[i] =  Mat::eye(3,3,CV_64F);
+		if (!cam[i].read(frame)){
+			return 0;
+		}
 	}
 
 	while (true){
-		if(!cam.read(frame)){
-			break;
+		for(int i = 0; i < CAM_INDX.size(); i++){
+			if(!cam[i].read(frame[i])){
+				break;
+			}
 		}
+		vector<bool> found = {false,false};
+		for(int i = 0; i < CAM_INDX.size(); i++){
+			vector<Vec2f> foundPoints;
 
-		vector<Vec2f> foundPoints;
-		bool found = false;
 
-		found = findChessboardCorners(frame, BOARD_DIMENSIONS, foundPoints, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
-		frame.copyTo(drawToFrame);
-		drawChessboardCorners(drawToFrame,BOARD_DIMENSIONS,foundPoints,found);
-		if (found){
-			imshow("webcam",drawToFrame);
+			found[i] = findChessboardCorners(frame[i], BOARD_DIMENSIONS, foundPoints, CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+			frame[i].copyTo(drawToFrame[i]);
+			drawChessboardCorners(drawToFrame[i],BOARD_DIMENSIONS,foundPoints,found[i]);
+			if (found[i]){
+				imshow("webcam " + i,drawToFrame[i]);
+			}
+			else{
+				imshow("webcam " + 1,frame[i]);
+			}
 		}
-		else{
-			imshow("webcam",frame);
-		}
-
 		char charachter = waitKey(50);
 
 		switch (charachter) {
 			case 32:
 				//saving image
-				if (found){
-					Mat temp;
-					frame.copyTo(temp);
-					savedImages.push_back(temp);
-				} else {
-					cout << "grid not detected" << endl;
+				for(int i = 0; i < CAM_INDX.size(); i++){
+					if (found[i]){
+						Mat temp;
+						frame[i].copyTo(temp);
+						savedImages[i].push_back(temp);
+					} else {
+						cout << "grid not detected in camera " << i << endl;
+					}
 				}
 				break;
 			case 10:
 				//calibration
-				if (savedImages.size() > 20){
-					cameraCalibration(savedImages, BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix, distanceCoefficients);
-					saveCameraCalibration("Calibration", cameraMatrix, distanceCoefficients);
-				} else {
-					cout << "not enough images" << endl;
+				for(int i = 0; i < CAM_INDX.size(); i++){
+					if (savedImages[i].size() > 20){
+						cameraCalibration(savedImages[i], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[i], distanceCoefficients[i]);
+						saveCameraCalibration("Calibration"+i, cameraMatrix[i], distanceCoefficients[i]);
+					} else {
+						cout << "not enough images to calibrate camera " << i << endl;
+					}
 				}
+				break;
+			case 27:
+				return 1;
 				break;
 		}
 	}
