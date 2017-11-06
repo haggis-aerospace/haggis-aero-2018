@@ -1,7 +1,14 @@
-#include "cameraCalibration.h"
+//#include "cameraCalibration.h"
 
-const float CALIB_SQUARE_SIZE = 0.019f;
-const Size BOARD_DIMENSIONS = Size(6,9);
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <vector>
+
+using namespace std;
+using namespace cv;
+
+const float CALIB_SQUARE_SIZE = 0.0292f;
+const Size BOARD_DIMENSIONS = Size(6,7);
 const vector<int> CAM_INDX = {1,2};
 
 void createKnownBoardPosition(Size boardSize, float squareEdgeLength, vector<Point3f>& corners){
@@ -74,18 +81,19 @@ bool saveCameraCalibration(String file, Mat cameraMatrix, Mat distanceCoefficien
 
 
 int main(int argc, char** argv){
-	vector<Mat> frame, drawToFrame;
-	vector<Mat> cameraMatrix;
-	vector<Mat> distanceCoefficients;
+	vector<Mat> frame(CAM_INDX.size()), drawToFrame(CAM_INDX.size());
+	vector<Mat> cameraMatrix(CAM_INDX.size());
+	vector<Mat> distanceCoefficients(CAM_INDX.size());
 
-	vector<vector<Mat>> savedImages;
-	vector<vector<vector<Point2f>>> markerCorners, rejectedCandidates;
+	vector<vector<Mat>> savedImages(CAM_INDX.size());
+	vector<vector<vector<Point2f>>> markerCorners(CAM_INDX.size()), rejectedCandidates(CAM_INDX.size());
 
-	vector<VideoCapture> cam;
+	vector<VideoCapture> cam(CAM_INDX.size());
 
 	for(int i = 0; i < CAM_INDX.size(); i++){
 		cameraMatrix[i] =  Mat::eye(3,3,CV_64F);
-		if (!cam[i].read(frame)){
+		cam[i].open(CAM_INDX[i]);
+		if (!cam[i].read(frame[i])){
 			return 0;
 		}
 	}
@@ -105,10 +113,10 @@ int main(int argc, char** argv){
 			frame[i].copyTo(drawToFrame[i]);
 			drawChessboardCorners(drawToFrame[i],BOARD_DIMENSIONS,foundPoints,found[i]);
 			if (found[i]){
-				imshow("webcam " + i,drawToFrame[i]);
+				imshow(("webcam" + to_string(i)),drawToFrame[i]);
 			}
 			else{
-				imshow("webcam " + 1,frame[i]);
+				imshow(("webcam" + to_string(i)),frame[i]);
 			}
 		}
 		char charachter = waitKey(50);
@@ -131,7 +139,7 @@ int main(int argc, char** argv){
 				for(int i = 0; i < CAM_INDX.size(); i++){
 					if (savedImages[i].size() > 20){
 						cameraCalibration(savedImages[i], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[i], distanceCoefficients[i]);
-						saveCameraCalibration("Calibration"+i, cameraMatrix[i], distanceCoefficients[i]);
+						saveCameraCalibration("Calibration"+to_string(i), cameraMatrix[i], distanceCoefficients[i]);
 					} else {
 						cout << "not enough images to calibrate camera " << i << endl;
 					}
