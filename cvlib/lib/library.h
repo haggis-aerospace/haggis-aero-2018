@@ -7,6 +7,7 @@ extern "C"
 {
     void hello();
     void libtest();
+	void undistortDemo();
 }
 
 
