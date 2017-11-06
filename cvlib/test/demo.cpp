@@ -6,4 +6,5 @@
 #include "library.h"
 
 int main(int argc, char** argv ) {
+	runCalibration(true);
 }

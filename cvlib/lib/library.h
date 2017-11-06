@@ -7,6 +7,8 @@ extern "C"
 {
     void hello();
     void libtest();
+	void camTest();
+	void runCalibration(bool showResult);
 }
 
 
