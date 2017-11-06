@@ -9,6 +9,12 @@ using namespace std;
 
 const float CALIB_SQUARE_SIZE = 0.019f;
 const Size BOARD_DIMENSIONS = Size(6,9);
+//TODO add structure
+//TODO add comments
+//TODO make it work for 2 cams
+//TODO complete header file
+//TODO stereo vision
+//TODO test!
 
 void hello() {
     std::cout << "Hello, World!" << std::endl;
@@ -57,6 +63,34 @@ void cameraCalibration(vector<Mat> calibrationImages, Size boardSize, float squa
 	calibrateCamera(worldSpaceCornerPoints, chessboardImagePoints, boardSize, cameraMatrix, distanceCoefficients, rVectors, tVectors);
 }
 
+bool saveCameraCalibration(String file, Mat cameraMatrix, Mat distanceCoefficients){
+	ofstream outStream(file);
+	if (outStream){
+		uint16_t rows = cameraMatrix.rows, columns = cameraMatrix.cols;
+
+		for (int r = 0; r < rows; r++){
+			for(int c = 0; c < columns; c++){
+				double val = cameraMatrix.at<double>(r,c);
+				outStream << val << endl;
+			}
+		}
+
+		rows = distanceCoefficients.rows;
+		columns = distanceCoefficients.cols;
+
+		for (int r = 0; r < rows; r++){
+			for(int c = 0; c < columns; c++){
+				double val = distanceCoefficients.at<double>(r,c);
+				outStream << val << endl;
+			}
+		}
+		outStream.close();
+		return true;
+	}
+	return false;
+
+}
+
 void runCalibration(bool showResult){
 	Mat frame, drawToFrame;
 	Mat cameraMatrix = Mat::eye(3,3,CV_64F);
@@ -90,7 +124,6 @@ void runCalibration(bool showResult){
 		}
 
 		char charachter = waitKey(50);
-		cout << (int)charachter << endl;
 
 		switch (charachter) {
 			case 32:
@@ -99,13 +132,15 @@ void runCalibration(bool showResult){
 					Mat temp;
 					frame.copyTo(temp);
 					savedImages.push_back(temp);
+				} else {
+					cout << "grid not detected" << endl;
 				}
 				break;
 			case 10:
 				//calibration
 				if (savedImages.size() > 20){
 					cameraCalibration(savedImages, BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix, distanceCoefficients);
-					cout << "shit" << endl;
+					saveCameraCalibration("Calibration", cameraMatrix, distanceCoefficients);
 				} else {
 					cout << "not enough images" << endl;
 				}
