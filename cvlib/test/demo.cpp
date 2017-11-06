@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv ) {
     auto camAPI = new camLib();
-    auto det = new character_detector(0.3f,0.001f, 0.7f);
+    auto det = new character_detector();
     namedWindow( "Display window", WINDOW_AUTOSIZE );
     while(true)
     {

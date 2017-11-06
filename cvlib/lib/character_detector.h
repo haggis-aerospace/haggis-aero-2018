@@ -15,7 +15,7 @@
 class character_detector {
 
 public:
-    character_detector(float min_confidence, float min_area, float max_area);
+    character_detector();
 
     ~character_detector();
 
@@ -24,12 +24,18 @@ public:
 private:
     void preprocess_image(cv::Mat &im, std::vector<cv::Mat> &channels);
 
-    double min_area;
-    double max_area;
-    double min_confidence;
+    int nfeatures = 500;
+    float scaleFactor = 1.2f;
+    int nlevels = 8;
+    int edgeThreshold = 50;
+    int keypointTypes = 3;
+    int kMin = 9;
+    int kMax = 11;
+    bool color = false;
 
-    cv::Ptr<cmp::FTPyr> ft;
-    cv::Ptr<cmp::Segmenter> seg;
+    cv::Ptr<cmp::FTPyr> ftDetector;
+    cv::Ptr<cmp::CharClassifier> charClassifier;
+    cv::Ptr<cmp::Segmenter> segmenter;
 };
 
 

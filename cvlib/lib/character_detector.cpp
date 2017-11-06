@@ -5,13 +5,12 @@
 #include <opencv/cv.hpp>
 #include <character_detector.h>
 #include <vis/componentsVis.h>
+#include <configuration.h>
 
-character_detector::character_detector(float min_confidence, float min_area, float max_area) :
-    min_area(min_area),
-    max_area(max_area),
-    min_confidence(min_confidence),
-    ft(new cmp::FTPyr()),
-    seg(new cmp::PyramidSegmenter(ft))
+character_detector::character_detector() : ftDetector(cv::Ptr<cmp::FTPyr> (new cmp::FTPyr(nfeatures, scaleFactor, nlevels, edgeThreshold, keypointTypes, kMin, kMax, color, false, false))),
+                                           charClassifier(cv::Ptr<cmp::CharClassifier> (new cmp::CvBoostCharClassifier(string(string(RESOURCES_PATH)+"cvBoostChar.xml").data()))),
+                                           segmenter(cv::Ptr<cmp::Segmenter> (new cmp::PyramidSegmenter(ftDetector, charClassifier)))
+
 {}
 
 character_detector::~character_detector() {
@@ -21,25 +20,24 @@ character_detector::~character_detector() {
 std::vector<cv::Rect>
 character_detector::character_bounds(cv::Mat &im) {
 
+    cv::Mat gray;
     std::vector<cv::Rect> out;
-    cv::Mat imc = im.clone();
+    cv::cvtColor(im, gray, cv::COLOR_BGR2GRAY);
 
     std::vector<cmp::FastKeyPoint> keypts;
-    std::unordered_multimap<int, std::pair<int, int> > mm;
-    std::vector<cv::Mat> channels;
-    std::vector<cmp::LetterCandidate*> lc;
+    std::unordered_multimap<int, std::pair<int, int> > keypts_pixels;
+    std::vector<cmp::LetterCandidate*> letters;
 
-    preprocess_image(imc, channels);
+    cv::Mat mask1, mask2;
 
-    ft->detect(imc, keypts, mm);
-    seg->getLetterCandidates(imc, keypts, mm, lc, cv::Mat(), 50);
+    ftDetector->detect(gray, keypts, keypts_pixels);
+    segmenter->getLetterCandidates(gray, keypts, keypts_pixels, letters);
 
-    cv::Mat debug = imc.clone();
+    cv::Mat debug = gray.clone();
 
-    std::vector<cmp::LetterCandidate>& candidates = seg->getLetterCandidates();
-
+    std::vector<cmp::LetterCandidate>& candidates = segmenter->getLetterCandidates();
     cv::cvtColor(debug,debug, cv::COLOR_GRAY2BGR);
-    cv::Mat cser = cmp::createCSERImage(lc, keypts, mm, debug);
+    cv::Mat cser = cmp::createCSERImage(letters, keypts, keypts_pixels, debug);
 
     cv::namedWindow("Debug", CV_WINDOW_AUTOSIZE);
     cv::imshow("Debug", cser);
@@ -53,5 +51,4 @@ character_detector::character_bounds(cv::Mat &im) {
 }
 
 void character_detector::preprocess_image(cv::Mat &im, std::vector<cv::Mat> &channels) {
-   cv::cvtColor(im, im, cv::COLOR_BGR2GRAY);
 }
