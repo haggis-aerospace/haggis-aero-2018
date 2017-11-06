@@ -7,4 +7,4 @@ find_package( OpenCV REQUIRED )
 
 add_subdirectory (lib)
 add_subdirectory (test)
-
+add_subdirectory (tools)
