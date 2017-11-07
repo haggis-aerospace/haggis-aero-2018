@@ -25,9 +25,9 @@ private:
     void preprocess_image(cv::Mat &im, std::vector<cv::Mat> &channels);
 
     int nfeatures = 500;
-    float scaleFactor = 1.2f;
-    int nlevels = 8;
-    int edgeThreshold = 50;
+    float scaleFactor = 1.4f;
+    int nlevels = -1;
+    int edgeThreshold = 25;
     int keypointTypes = 3;
     int kMin = 9;
     int kMax = 11;
