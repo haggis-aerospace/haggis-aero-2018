@@ -79,13 +79,45 @@ bool saveCameraCalibration(String file, Mat cameraMatrix, Mat distanceCoefficien
 
 }
 
+double calibrateCameraStereo(vector<Mat> calibrationImages, Size boardSize, float squareEdgeLength, vector<Mat>& cameraMatrix, vector<Mat>& distanceCoefficients){
+	vector<vector<Point2f>> pointsTemp;
+	vector<vector<vector<Point2f>>> points(2);
+	Size imgSize = calibrationImages[0].size();
+	Mat R, T, E, F;
+	vector<vector<Point3f>> objectPoints(1);
+
+	getChessboardCorners(calibrationImages, pointsTemp, false);
+
+	for(int i = 0; i < pointsTemp.size(); i++){
+		points[i%2].push_back(pointsTemp[i]);
+	}
+	//cout << pointsTemp[0] << endl;
+
+	createKnownBoardPosition(boardSize,squareEdgeLength,objectPoints[0]);
+	objectPoints.resize(pointsTemp.size()/2,objectPoints[0]);
+	//cout << objectPoints[0] << endl;
+
+	return stereoCalibrate(objectPoints, points[0], points[1],
+                    cameraMatrix[0], distanceCoefficients[0],
+                    cameraMatrix[1], distanceCoefficients[1],
+                    imgSize, R, T, E, F,
+                    CALIB_FIX_ASPECT_RATIO +
+                    CALIB_ZERO_TANGENT_DIST +
+                    CALIB_USE_INTRINSIC_GUESS +
+                    CALIB_SAME_FOCAL_LENGTH +
+                    CALIB_RATIONAL_MODEL +
+                    CALIB_FIX_K3 + CALIB_FIX_K4 + CALIB_FIX_K5,
+					TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 100, 1e-5) );
+
+}
+
 
 int main(int argc, char** argv){
 	vector<Mat> frame(CAM_INDX.size()), drawToFrame(CAM_INDX.size());
 	vector<Mat> cameraMatrix(CAM_INDX.size());
 	vector<Mat> distanceCoefficients(CAM_INDX.size());
 
-	vector<vector<Mat>> savedImages(CAM_INDX.size());
+	vector<Mat> savedImages;
 	vector<vector<vector<Point2f>>> markerCorners(CAM_INDX.size()), rejectedCandidates(CAM_INDX.size());
 
 	vector<VideoCapture> cam(CAM_INDX.size());
@@ -120,30 +152,37 @@ int main(int argc, char** argv){
 			}
 		}
 		char charachter = waitKey(50);
-
+		bool pairFound = true;
+		Mat temp[CAM_INDX.size()];
 		switch (charachter) {
 			case 32:
 				//saving image
 				for(int i = 0; i < CAM_INDX.size(); i++){
-					if (found[i]){
-						Mat temp;
-						frame[i].copyTo(temp);
-						savedImages[i].push_back(temp);
-					} else {
+					if (!found[i]){
+						pairFound = false;
 						cout << "grid not detected in camera " << i << endl;
+					} else {
+						frame[i].copyTo(temp[i]);
+					}
+				}
+				if (pairFound){
+					for(int i = 0; i < CAM_INDX.size(); i++){
+						frame[i].copyTo(temp[i]);
+						savedImages.push_back(temp[i]);
 					}
 				}
 				break;
 			case 10:
 				//calibration
-				for(int i = 0; i < CAM_INDX.size(); i++){
-					if (savedImages[i].size() > 20){
-						cameraCalibration(savedImages[i], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[i], distanceCoefficients[i]);
-						saveCameraCalibration("Calibration"+to_string(i), cameraMatrix[i], distanceCoefficients[i]);
+			//	for(int i = 0; i < CAM_INDX.size(); i++){
+					if (savedImages.size() > 20){
+						//cameraCalibration(savedImages[i], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[i], distanceCoefficients[i]);
+						//saveCameraCalibration("Calibration"+to_string(i), cameraMatrix[i], distanceCoefficients[i]);
+						cout << "calib error of " << to_string(calibrateCameraStereo(savedImages, BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix, distanceCoefficients)) << endl;
 					} else {
-						cout << "not enough images to calibrate camera " << i << endl;
+						cout << "not enough images to calibrate cameras " << endl;
 					}
-				}
+			//	}
 				break;
 			case 27:
 				return 1;
