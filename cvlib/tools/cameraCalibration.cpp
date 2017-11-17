@@ -7,8 +7,8 @@
 using namespace std;
 using namespace cv;
 
-const float CALIB_SQUARE_SIZE = 0.0292f;
-const Size BOARD_DIMENSIONS = Size(6,7);
+const float CALIB_SQUARE_SIZE = 0.0335f;
+const Size BOARD_DIMENSIONS = Size(6,9);
 const vector<int> CAM_INDX = {1,2};
 
 void createKnownBoardPosition(Size boardSize, float squareEdgeLength, vector<Point3f>& corners){
@@ -31,7 +31,6 @@ void getChessboardCorners(vector<Mat> images, vector<vector<Point2f>>& foundCorn
 		if (showResult){
 			drawChessboardCorners(*i, BOARD_DIMENSIONS, points, found);
 			imshow("Corners", *i);
-			waitKey(0);
 		}
 	}
 }
@@ -51,57 +50,29 @@ void cameraCalibration(vector<Mat> calibrationImages, Size boardSize, float squa
 	calibrateCamera(worldSpaceCornerPoints, chessboardImagePoints, boardSize, cameraMatrix, distanceCoefficients, rVectors, tVectors);
 }
 
-bool saveCameraCalibration(String file, Mat cameraMatrix, Mat distanceCoefficients){
-	ofstream outStream(file);
-	if (outStream){
-		uint16_t rows = cameraMatrix.rows, columns = cameraMatrix.cols;
-
-		for (int r = 0; r < rows; r++){
-			for(int c = 0; c < columns; c++){
-				double val = cameraMatrix.at<double>(r,c);
-				outStream << val << endl;
-			}
-		}
-
-		rows = distanceCoefficients.rows;
-		columns = distanceCoefficients.cols;
-
-		for (int r = 0; r < rows; r++){
-			for(int c = 0; c < columns; c++){
-				double val = distanceCoefficients.at<double>(r,c);
-				outStream << val << endl;
-			}
-		}
-		outStream.close();
-		return true;
-	}
-	return false;
-
-}
-
-double calibrateCameraStereo(vector<Mat> calibrationImages, Size boardSize, float squareEdgeLength, vector<Mat>& cameraMatrix, vector<Mat>& distanceCoefficients){
+double calibrateCameraStereo(vector<vector<Mat>> calibrationImages, Size boardSize, float squareEdgeLength, vector<Mat>& cameraMatrix, vector<Mat>& distanceCoefficients){
 	vector<vector<Point2f>> pointsTemp;
 	vector<vector<vector<Point2f>>> points(2);
-	Size imgSize = calibrationImages[0].size();
+	Size imgSize = calibrationImages[0][0].size();
 	Mat R, T, E, F;
 	vector<vector<Point3f>> objectPoints(1);
 
-	getChessboardCorners(calibrationImages, pointsTemp, false);
-
-	for(int i = 0; i < pointsTemp.size(); i++){
-		points[i%2].push_back(pointsTemp[i]);
-	}
-	//cout << pointsTemp[0] << endl;
+	getChessboardCorners(calibrationImages[0], points[0], false);
+	getChessboardCorners(calibrationImages[1], points[1], false);
+	cout << "test" << endl;
 
 	createKnownBoardPosition(boardSize,squareEdgeLength,objectPoints[0]);
-	objectPoints.resize(pointsTemp.size()/2,objectPoints[0]);
-	//cout << objectPoints[0] << endl;
+	objectPoints.resize(points[0].size(),objectPoints[0]);
 
+	cout << "test" << endl;
 	double rms = stereoCalibrate(objectPoints, points[0], points[1],
                     cameraMatrix[0], distanceCoefficients[0],
                     cameraMatrix[1], distanceCoefficients[1],
                     imgSize, R, T, E, F,CV_CALIB_FIX_INTRINSIC,
 					TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 100, 1e-5) );
+
+					cout << "test" << endl;
+
 
 	FileStorage fs("intrinsics.yml", FileStorage::WRITE);
 	if( fs.isOpened() ){
@@ -128,67 +99,27 @@ double calibrateCameraStereo(vector<Mat> calibrationImages, Size boardSize, floa
 		fs.release();
 	}
 
-	//TODO delete this bullshit test stuff
+	cv::cvtColor(calibrationImages[0][0], calibrationImages[0][0], CV_BGR2GRAY);
 
-	//-- 1. Read the images
-
-
-	cv::cvtColor(calibrationImages[0], calibrationImages[0], CV_BGR2GRAY);
-
-	cv::cvtColor(calibrationImages[1], calibrationImages[1], CV_BGR2GRAY);
+	cv::cvtColor(calibrationImages[1][0], calibrationImages[1][0], CV_BGR2GRAY);
 
 	vector<Mat> rview(2), map1(2), map2(2);
 
+	vector<Mat> P(2);
+	P1.copyTo(P[0]);
+	P2.copyTo(P[1]);
+
 	for (int i = 0; i < 2; i++){
-		imshow("test" + to_string(i), calibrationImages[i]);
+		imshow("test" + to_string(i), calibrationImages[i][0]);
 		initUndistortRectifyMap(
 			cameraMatrix[i], distanceCoefficients[i], R,
-			getOptimalNewCameraMatrix(cameraMatrix[i], distanceCoefficients[i], imgSize, 1, imgSize, 0), imgSize,
+			P[i], imgSize,
 			CV_16SC2, map1[i], map2[i]);
-		remap(calibrationImages[i], rview[i], map1[i], map2[i], INTER_LINEAR);
+		remap(calibrationImages[i][0], rview[i], map1[i], map2[i], INTER_LINEAR);
 		rectangle(rview[i], validRoi[i], 50);
 		imshow("qwe" + to_string(i), rview[i]);
 	}
 
-
-
-	/*
-	//-- And create the image in which we will save our disparities
-	Mat imgDisparity16S = Mat( calibrationImages[0].rows, calibrationImages[0].cols, CV_16S );
-	Mat imgDisparity8U = Mat( calibrationImages[0].rows, calibrationImages[0].cols, CV_8UC1 );
-
-
-	//-- 2. Call the constructor for StereoBM
-	int ndisparities = 7*16;   //< Range of disparity
-	int SADWindowSize = 9; //< Size of the block window. Must be odd
-
-	Ptr<StereoBM> sbm = StereoBM::create( ndisparities, SADWindowSize );
-	sbm->setROI1(validRoi[0]);
-	sbm->setROI2(validRoi[1]);
-	sbm->setPreFilterSize(5);
-	sbm->setPreFilterCap(61);
-	sbm->setMinDisparity(-39);
-	sbm->setTextureThreshold(507);
-	sbm->setUniquenessRatio(0);
-	sbm->setSpeckleWindowSize(0);
-	sbm->setSpeckleRange(8);
-	sbm->setDisp12MaxDiff(1);
-	//-- 3. Calculate the disparity image
-	sbm->compute( calibrationImages[0], calibrationImages[1], imgDisparity16S );
-
-	//-- Check its extreme values
-	double minVal; double maxVal;
-
-	minMaxLoc( imgDisparity16S, &minVal, &maxVal );
-
-	printf("Min disp: %f Max value: %f \n", minVal, maxVal);
-
-	//-- 4. Display it as a CV_8UC1 image
-	imgDisparity16S.convertTo( imgDisparity8U, CV_8UC1, 255/(maxVal - minVal));
-
-	namedWindow( "windowDisparity", WINDOW_NORMAL );
-	imshow( "windowDisparity", imgDisparity8U );
-	*/
 	return rms;
 }
 
@@ -198,8 +129,8 @@ int main(int argc, char** argv){
 	vector<Mat> cameraMatrix(CAM_INDX.size());
 	vector<Mat> distanceCoefficients(CAM_INDX.size());
 
-	vector<Mat> savedImages;
-	vector<vector<Mat>> savedImagesIn(CAM_INDX.size());
+//	vector<Mat> savedImages;
+	vector<vector<Mat>> savedImages(CAM_INDX.size());
 	vector<vector<vector<Point2f>>> markerCorners(CAM_INDX.size()), rejectedCandidates(CAM_INDX.size());
 
 	vector<VideoCapture> cam(CAM_INDX.size());
@@ -234,12 +165,14 @@ int main(int argc, char** argv){
 			else{
 				imshow(("webcam" + to_string(i)),frame[i]);
 			}
-			undistort(frame[i],undist[i],cameraMatrix[i],distanceCoefficients[i]);
-			imshow(("undist" + to_string(i)),undist[i]);
+		//	undistort(frame[i],undist[i],cameraMatrix[i],distanceCoefficients[i]);
+		//	imshow(("undist" + to_string(i)),undist[i]);
 		}
+
 		char charachter = waitKey(50);
 		bool pairFound = true;
-		Mat temp[CAM_INDX.size()],temp1[CAM_INDX.size()];
+		Mat temp[CAM_INDX.size()];
+
 		switch (charachter) {
 			case 32:
 				for(int i = 0; i < CAM_INDX.size(); i++){ //save image from both webcams
@@ -252,20 +185,19 @@ int main(int argc, char** argv){
 				}
 				if (pairFound){
 					for(int i = 0; i < CAM_INDX.size(); i++){
-						frame[i].copyTo(temp[i]);
-						frame[i].copyTo(temp1[i]);
-						savedImages.push_back(temp[i]);
-						savedImagesIn[i].push_back(temp1[i]);
+						//savedImages.push_back(temp[i]);
+						savedImages[i].push_back(temp[i]);
+						cout << "PAIR FOUND" << endl;
 					}
 				}
 				break;
 			case 10:
 				//calibration
 
-					if (savedImages.size() > 10){ //calibrate extrinsics of the stereo cameras
-						for(int i = 0; i < CAM_INDX.size(); i++){
-							cameraCalibration(savedImagesIn[i], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[i], distanceCoefficients[i]);
-						}
+					if (savedImages[0].size() > 10){ //calibrate extrinsics of the stereo cameras
+						/*for(int i = 0; i < CAM_INDX.size(); i++){
+							cameraCalibration(savedImages[i], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[i], distanceCoefficients[i]);
+						}*/
 						cout << cameraMatrix[0] << endl << endl << cameraMatrix[1] << endl << endl;
 						cout << distanceCoefficients[0] << endl << endl << distanceCoefficients[1] << endl << endl;
 						//saveCameraCalibration("Calibration"+to_string(i), cameraMatrix[i], distanceCoefficients[i]);
@@ -276,9 +208,10 @@ int main(int argc, char** argv){
 			//	}
 				break;
 			case 65:
-				if (savedImages.size() > 10){ //calibrate camera intrinsics for each camera
+			case 97:
+				if (savedImages[0].size() > 10){ //calibrate camera intrinsics for each camera
 					for(int i = 0; i < CAM_INDX.size(); i++){
-						cameraCalibration(savedImagesIn[i], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[i], distanceCoefficients[i]);
+						cameraCalibration(savedImages[i], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[i], distanceCoefficients[i]);
 					}
 				}
 				break;
@@ -287,7 +220,38 @@ int main(int argc, char** argv){
 				break;
 			case 67:
 			case 99:
-				savedImages.clear();// delete saved calibration images
+				savedImages[0].clear();
+				savedImages[1].clear();
+				cameraMatrix[0] =  Mat::eye(3,3,CV_64F);
+				cameraMatrix[1] =  Mat::eye(3,3,CV_64F);
+				distanceCoefficients.clear();
+				distanceCoefficients.resize(CAM_INDX.size());
+			case 108:
+				if (!found[0]){
+					cout << "grid not detected in camera " << 0 << endl;
+				} else {
+					frame[0].copyTo(temp[0]);
+					savedImages[0].push_back(temp[0]);
+				}
+				break;
+			case 114:
+				if (!found[1]){
+					cout << "grid not detected in camera " << 1 << endl;
+				} else {
+					frame[1].copyTo(temp[1]);
+					savedImages[1].push_back(temp[1]);
+				}
+				break;
+			case 76:
+				if (savedImages[0].size() > 10){ //calibrate camera intrinsics for each camera
+					cameraCalibration(savedImages[0], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[0], distanceCoefficients[0]);
+				}
+				break;
+			case 82:
+				if (savedImages[1].size() > 10){ //calibrate camera intrinsics for each camera
+					cameraCalibration(savedImages[1], BOARD_DIMENSIONS, CALIB_SQUARE_SIZE, cameraMatrix[1], distanceCoefficients[1]);
+				}
+				break;
 		}
 	}
 	return 1;
