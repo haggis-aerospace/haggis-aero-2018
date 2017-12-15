@@ -22,7 +22,8 @@ private:
 	std::vector<cv::Mat> frame;
 	const int camIndx[2] = {1,2};
 	cv::Ptr<cv::VideoCapture> cam[2];
-	int textureThreshold, minDisparity, speckleRange, preFilterCap, speckleSize;
+	double distMultiplier;
+	int crop, textureThreshold, minDisparity, speckleRange, preFilterCap, speckleSize, uniqnessRatio, ndisparities, SADWindowSize, preFilterSize;
 public:
 	Stereo();
 
@@ -34,6 +35,8 @@ public:
 	void rectifyImages(/*std::vector<cv::Mat>& imagesIn, std::vector<cv::Mat>& imagesOut, */bool display = false);
 
 	void getDisparity(/*std::vector<cv::Mat>& images, */bool display = false);
+
+	void readImages();//debug code
 
 };
 
