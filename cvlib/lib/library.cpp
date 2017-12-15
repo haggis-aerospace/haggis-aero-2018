@@ -214,15 +214,26 @@ void Stereo::getDisparity(/*vector<Mat>& images, */bool display){
 
 	minMaxLoc( imgDisparity16S, &minVal, &maxVal );
 
-	printf("Min disp: %f Max value: %f \n", distMultiplier/minVal, distMultiplier/maxVal);
+//	printf("Min disp: %f Max value: %f \n", distMultiplier/minVal, distMultiplier/maxVal);
 
 	//-- 4. Display it as a CV_8UC1 image
 	imgDisparity16S.convertTo( imgDisparity8U, CV_8UC1, 255/(maxVal - minVal));
 
 	imshow( "test", imgDisparity8U );
+	disp = imgDisparity8U;
+}
+
+double Stereo::distance(Rect rect){
+	Mat qwe = disp(rect);
+	double dist = distMultiplier/sum(mean(qwe))[0];
+	return dist;
 }
 
 void Stereo::readImages(){
 	frame[0] = imread("aloeL.jpg");
 	frame[1] = imread("aloeR.jpg");
+}
+
+std::vector<cv::Mat> Stereo::getImages(){
+	return frame;
 }

@@ -19,6 +19,7 @@ struct Letter {
     int width;    //Size of bounding box
     int height;
     int pos;     //Horizontal position as % from left of image
+	Rect rect;
 };
 
 
@@ -32,12 +33,14 @@ private:
 public:
     camLib();
     ~camLib();
-    
+
     Mat getImg();
     std::vector<Letter> findLetter(Mat img, bool display=false, int min_confidence=70);
 
     std::vector< std::pair<cv::Mat, cv::Point>> getBounds(Mat img, bool display=false);
     std::vector< std::pair<cv::Mat, cv::Point>> getBounds(Mat* img, bool display=false);
+
+	void setImg(Mat img);
 };
 
 

@@ -5,17 +5,26 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, char** argv ) {
-<<<<<<< HEAD
+//<<<<<<< HEAD
 
-	Ptr<Stereo> test = new Stereo();
-	test->loadIntrinsics();
-	test->loadExtrinsics();
+	Ptr<Stereo> stereo = new Stereo();
+	Ptr<camLib> ocr = new camLib();
+	stereo->loadIntrinsics();
+	stereo->loadExtrinsics();
 
 	while(true){
-		test->getStereoImages();
-		test->rectifyImages(true);
+		stereo->getStereoImages();
+		stereo->rectifyImages(true);
+		vector<Mat> img = stereo->getImages();
+
 		//test->readImages();
-		test->getDisparity();
+		std::vector<Letter> lettrs = ocr->findLetter(img[0],true);
+		stereo->getDisparity();
+		for(int i=0; i<lettrs.size(); i++){
+			printf("Found: %c at %i%% to the left. Size: %i,%i  Ratio: %.2f\n", lettrs.at(i).letter, lettrs.at(i).pos, lettrs.at(i).width, lettrs.at(i).height, ((float)lettrs.at(i).width/(float)lettrs.at(i).height));
+			cout << stereo->distance(lettrs[i].rect) << "m" << endl;
+		}
+
 		char c = waitKey(50);
 	}
 

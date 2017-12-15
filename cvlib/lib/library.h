@@ -19,7 +19,7 @@ extern "C"
 
 class Stereo{
 private:
-	cv::Mat M1, M2, D1, D2, R, T, R1, R2, P1, P2, Q, mapL1, mapL2, mapR1, mapR2;
+	cv::Mat M1, M2, D1, D2, R, T, R1, R2, P1, P2, Q, mapL1, mapL2, mapR1, mapR2, disp;
 	cv::Rect Roi1, Roi2;
 	std::vector<cv::Mat> frame;
 	const int camIndx[2] = {1,2};
@@ -32,11 +32,15 @@ public:
 	void loadIntrinsics(std::string file = "intrinsics.yml");
 	void loadExtrinsics(std::string file = "extrinsics.yml");
 
-	void getStereoImages(/*std::vector<cv::Mat>& images, */bool display = false);
+	void getStereoImages(bool display = false);
 
-	void rectifyImages(/*std::vector<cv::Mat>& imagesIn, std::vector<cv::Mat>& imagesOut, */bool display = false);
+	void rectifyImages(bool display = false);
 
-	void getDisparity(/*std::vector<cv::Mat>& images, */bool display = false);
+	void getDisparity(bool display = false);
+
+	std::vector<cv::Mat> getImages();
+
+	double distance(cv::Rect rect);
 
 	void readImages();//debug code
 
