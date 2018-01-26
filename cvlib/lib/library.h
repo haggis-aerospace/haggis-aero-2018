@@ -7,8 +7,8 @@ void imgRecTest();
 
 extern "C"
 {
-void hello();
-void libtest();
+    void hello();
+    void libtest();
 }
 
 
