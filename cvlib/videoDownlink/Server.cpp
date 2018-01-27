@@ -39,7 +39,6 @@ int main(int argc, char * argv[]) {
     }
 
     unsigned short servPort = atoi(argv[1]); // First arg:  local port
-    namedWindow("recv", CV_WINDOW_AUTOSIZE);
 
     try {
         UDPSocket sock(servPort);
@@ -54,7 +53,7 @@ int main(int argc, char * argv[]) {
         Mat frame, send;
         vector < uchar > encoded;
         VideoCapture cap(0); // Grab the camera
-        namedWindow("send", CV_WINDOW_AUTOSIZE);
+        //namedWindow("send", CV_WINDOW_AUTOSIZE);
         if (!cap.isOpened()) {
             cerr << "OpenCV Failed to open camera";
             exit(1);
@@ -79,7 +78,7 @@ int main(int argc, char * argv[]) {
             compression_params.push_back(jpegqual);
 
             imencode(".jpg", send, encoded, compression_params);
-            imshow("send", send);
+            //imshow("send", send);
 
             int total_pack = 1 + (encoded.size() - 1) / PACK_SIZE;
 

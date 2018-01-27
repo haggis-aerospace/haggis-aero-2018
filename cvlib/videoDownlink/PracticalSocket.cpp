@@ -194,11 +194,13 @@ void CommunicatingSocket::connect(const string &foreignAddress,
   }
 }
 
-void CommunicatingSocket::send(const void *buffer, int bufferLen) 
+int CommunicatingSocket::send(const void *buffer, int bufferLen) 
     throw(SocketException) {
-  if (::send(sockDesc, (raw_type *) buffer, bufferLen, 0) < 0) {
+  int res = ::send(sockDesc, (raw_type *) buffer, bufferLen, 0);
+  if (res < 0) {
     throw SocketException("Send failed (send())", true);
   }
+  return res;
 }
 
 int CommunicatingSocket::recv(void *buffer, int bufferLen) 
@@ -234,10 +236,7 @@ unsigned short CommunicatingSocket::getForeignPort() throw(SocketException) {
 
 // TCPSocket Code
 
-TCPSocket::TCPSocket() 
-    throw(SocketException) : CommunicatingSocket(SOCK_STREAM, 
-    IPPROTO_TCP) {
-}
+TCPSocket::TCPSocket() throw(SocketException) : CommunicatingSocket(SOCK_STREAM, IPPROTO_TCP) {}
 
 TCPSocket::TCPSocket(const string &foreignAddress, unsigned short foreignPort)
     throw(SocketException) : CommunicatingSocket(SOCK_STREAM, IPPROTO_TCP) {

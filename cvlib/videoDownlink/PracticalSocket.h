@@ -156,7 +156,7 @@ public:
    *   @param bufferLen number of bytes from buffer to be written
    *   @exception SocketException thrown if unable to send data
    */
-  void send(const void *buffer, int bufferLen) throw(SocketException);
+  int send(const void *buffer, int bufferLen) throw(SocketException);
 
   /**
    *   Read into the given buffer up to bufferLen bytes data from this
