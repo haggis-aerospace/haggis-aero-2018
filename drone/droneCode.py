@@ -41,19 +41,17 @@ def main(rotation=False, goTo=False, run=False, alt=False):
             print "Waiting for Arm..."
         if vehicle.armed == False: # Arm drone and climb to 10m once in guided mode
             print "Arming..."
-            nav.arm_and_takeoff(3)
+            nav.arm_and_takeoff(2)
 
         #Main Program execution code
         if vehicle.mode.name == "GUIDED":
-
             #Test code
             letter = server.getLastLetter()
-            print str(letter.width) + "," + str(letter.height)
             if letter.width > 0 and letter.height > 0:
                 if(rotation):
                     lookAtLetter()
                 if(goTo):
-                    runFromLetter()
+                    gotoLetter()
                 elif(run):
                     runFromLetter()
                 if(alt):
@@ -74,11 +72,11 @@ def lookAtLetter():
     while (pos < 40 or pos > 60) and server.getLastLetter().width > 0:
         if pos > 60:
             print "Turning Left"
-            nav.condition_yaw(357, True)
+            nav.condition_yaw(355, True)
         elif pos < 40:
             print "Turning Right"
-            nav.condition_yaw(003, True)
-        time.sleep(0.1)
+            nav.condition_yaw(005, True)
+        time.sleep(0.5)
         pos = server.getLastLetter().x
 
 
@@ -94,6 +92,7 @@ def gotoLetter():
         elif server.getLastLetter().width * server.getLastLetter().height > baseSize*1.1:
             print "Moving Backwards"
             nav.send_body_ned_velocity(-0.15,0,0,300)
+        time.sleep(0.5)
 
 
 def runFromLetter():
@@ -105,22 +104,22 @@ def runFromLetter():
         if server.getLastLetter().width * server.getLastLetter().height > baseSize*1.1:
             print "Moving Backwards"
             nav.send_body_ned_velocity(-0.15,0,0,300)
-
+        time.sleep(0.5)
 
 def letterHeight():
     global server,nav
     lookAtLetter()
     pos = server.getLastLetter().y
-    while (pos < 40 or pos > 60) and server.getLastLetter().width > 0:
+    while (pos < 25 or pos > 75) and server.getLastLetter().width > 0:
         if pos > 60:
             print "Letter Decending"
             nav.altChangeRelative(-0.2, True)
         elif pos < 40:
             print "Letter Climbing"
             nav.altChangeRelative(0.2, True)
-            time.sleep(0.1)
         lookAtLetter()
         pos = server.getLastLetter().y
+        time.sleep(0.5) 
 
 def landLetter():
     nav.returnToLaunch(10)
@@ -144,7 +143,7 @@ def initilize(rotation=True,goTo=False, run=False,alt=False):
 
     try:
         print "Connecting to vehicle..."
-        vehicle = connect('/dev/ttyACM0', wait_ready=True, baud=57600)  #Connect to vehicle and initialize home location
+        vehicle = connect('127.0.0.1:14550', wait_ready=True)  #Connect to vehicle and initialize home location
         vehicle.home_location = vehicle.location.global_frame
 
         print "Waiting for client to connect..."
