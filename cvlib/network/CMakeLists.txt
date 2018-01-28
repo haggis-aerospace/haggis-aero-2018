@@ -5,4 +5,4 @@ add_executable( server Server.cpp PracticalSocket.cpp )
 target_link_libraries( server ${OpenCV_LIBS} )
 
 add_executable( client Client.cpp PracticalSocket.cpp )
-target_link_libraries( client LINK_PUBLIC cvlib ${OpenCV_LIBS})
+target_link_libraries( client LINK_PUBLIC X11 cvlib ${OpenCV_LIBS})

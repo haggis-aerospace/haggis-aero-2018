@@ -1,6 +1,7 @@
 #include "Client.h"
 #include <unistd.h>
 #include <sstream>
+#include <X11/Xlib.h>
 using namespace std;
 using namespace cv;
 
@@ -139,6 +140,8 @@ int main(int argc, char * argv[]) {
     unsigned short servPortUDP = Socket::resolveService(argv[3], "udp");
     unsigned short servPortTCP = Socket::resolveService(argv[2], "tcp");
     
+    XInitThreads(); 
+ 
     Mat *m = new Mat();
     UDPStream *udpStream = new UDPStream();
     TCPStream *tcpStream = new TCPStream();
