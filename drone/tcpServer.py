@@ -40,17 +40,21 @@ class Server(object):
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         global letter, client_connected
-        data = self.request.recv(100)
-        print "Received: " + str(data)
-        values = data.split(",")
-        if len(values) < 7:
-            print "Error, invalid data received"
-        else:
-            if not client_connected:
-                client_connected = True
-            print "Letter data received"
-            letter = Letter(values[0], values[1], values[2], values[3], values[4], values[5], values[6])
-        self.handle()
+        while True:
+            data = self.request.recv(100)
+            print "Received: " + str(data)
+            values = data.split(",")
+            print "Len: " + str(len(values))
+            if len(values) < 7:
+                print "Error, invalid data received"
+                letter = Letter("~", 0, 0, 0, 0, 0, 0)
+                time.sleep(1)
+            else:
+                if not client_connected:
+                    client_connected = True
+                print "Letter data received"
+                letter = Letter(values[0], values[1], values[2], values[3], values[4], values[5], values[6])
+            data = None
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
