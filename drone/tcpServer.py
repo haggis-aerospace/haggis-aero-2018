@@ -22,7 +22,7 @@ class Server(object):
     server = None
     global client_connected
 
-    def __init__(self, host="127.0.0.1", port=5463):
+    def __init__(self, host="0.0.0.0", port=5463):
         global server
         server = ThreadedTCPServer((host,port), ThreadedTCPRequestHandler)
         server_thread = threading.Thread(target=server.serve_forever)
