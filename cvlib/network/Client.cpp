@@ -85,8 +85,8 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
                 // Block until receive message from a client
                 do {
                     recvMsgSize = sock.recvFrom(buffer, BUF_LEN, servAddress, servPort);
-                    if(recvMsgSize == EWOULDBLOCK || recvMsgSize == EWOULDBLOCK)
-                        break;
+                    //if(recvMsgSize == EWOULDBLOCK || recvMsgSize == EWOULDBLOCK)
+                    //    break;
                 } while (recvMsgSize > sizeof(int));
                 int total_pack = ((int * ) buffer)[0];
 

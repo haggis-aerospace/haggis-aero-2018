@@ -29,7 +29,7 @@ using namespace std;
 using namespace cv;
 #include "config.h"
 #include <unistd.h>
-
+#include <sys/time.h>
 
 int main(int argc, char * argv[]) {
 
@@ -59,8 +59,6 @@ int main(int argc, char * argv[]) {
             exit(1);
         }
 
-        clock_t last_cycle = clock();
-        
         
         // Retrieve message from client; used to get client address
         cout << "Server: Waiting for client to connect..." << endl;
@@ -69,6 +67,8 @@ int main(int argc, char * argv[]) {
         } while (recvMsgSize > sizeof(int));
         cout << "Server: Client connected" << endl;
         
+        clock_t last_cycle = clock();
+
         while (1) {
             cap >> frame;
             if(frame.size().width==0)continue;//simple integrity check; skip erroneous data...
@@ -78,7 +78,6 @@ int main(int argc, char * argv[]) {
             compression_params.push_back(jpegqual);
 
             imencode(".jpg", send, encoded, compression_params);
-            //imshow("send", send);
 
             int total_pack = 1 + (encoded.size() - 1) / PACK_SIZE;
 
@@ -89,14 +88,15 @@ int main(int argc, char * argv[]) {
             for (int i = 0; i < total_pack; i++)
                 sock.sendTo( & encoded[i * PACK_SIZE], PACK_SIZE, clientAddress, clientPort);
 
-            waitKey(FRAME_INTERVAL);
             
             clock_t next_cycle = clock();
-            double duration = (next_cycle - last_cycle) / (double) CLOCKS_PER_SEC;
-            cout << "\teffective FPS:" << (1 / duration) << " \tkbps:" << (PACK_SIZE * total_pack / duration / 1024 * 8) << endl;
+            double duration = (next_cycle - last_cycle) / ((double) CLOCKS_PER_SEC/1000);
+            cout << "\teffective FPS:" << (1 / ((double)duration/1000)) << " \tMbps:" << (PACK_SIZE * total_pack / ((double)duration/1000) / 1024 / 1024) << endl;
 
-            cout << next_cycle - last_cycle;
             last_cycle = next_cycle;
+            double sleep = (1.0/(double)FRAME_RATE*1000000.0);
+            //printf("Sleep: %.3f  Duration %.3f\n", sleep, duration*1000);
+            usleep((1.0/(double)FRAME_RATE*1000000.0) - duration*1000);
         }
         // Destructor closes the socket
 
