@@ -1,45 +1,62 @@
 #include "Client.h"
 #include <unistd.h>
+#include <sstream>
 using namespace std;
 using namespace cv;
 
 TCPStream::TCPStream(){}
 
-void TCPStream::connect(const string servAddress, unsigned short servPort)
+void TCPStream::connect(const string servAddress, unsigned short servPort, UDPStream *vidStream)
 {
+    camLib library;
     while(true){
         try {
             //Initilize connection to server
             TCPSocket sock;
-            cout << "TCP: Attempting to connect to server..." << endl;
+            printf("TCP: Attempting to connect to server...\n");
             sock.connect(servAddress, servPort);
             connected = true;
-            
+            ostringstream ss;
             while(true)
             {
-                cout << "TCP: Sending letter data" << endl;
-                char *buffer = (char*)"null,0,0,0,0,0,0";
+                Mat src = vidStream->getLastFrame();
+                Letter ltr = library.findLetter(src);
+                ss.clear();
+                ss.str(string());
+                ss << ltr.letter
+                    << "," << to_string(ltr.width)
+                    << "," << to_string(ltr.height)
+                    << "," << to_string(ltr.x)
+                    << "," << to_string(ltr.y)
+                    << "," << to_string(ltr.pos)
+                    << "," << to_string(ltr.avSize);
+                
+                string toSend = ss.str();
+                const char *buffer = toSend.c_str();
+                cout << toSend << "\n";
                 try{
+                    std::flush(cout);
                     int status = sock.send(buffer, strlen(buffer));
                     if(status == EPIPE){ break; }
                 }catch(SocketException &e){
                     cerr << e.what() << endl;
                     break;
                 }
-                usleep(100000);
+                usleep(50000);
             }
                                     
         } catch (SocketException & e) {
             cerr << e.what() << endl;
         }
-        cout << "TCP: Error during connection to server" << endl;
+        printf("TCP: Error during connection to server\n");
         usleep(1000000);
     }
 
-    cout << "TCP: ERROR: This message should never be displayed... TCP has failed" << endl;
-
+    printf("TCP: ERROR: This message should never be displayed... TCP has failed\n");
 }
 
+
+UDPStream::UDPStream(){}
 
 void UDPStream::connect(string servAddress, unsigned short servPort)
 {
@@ -54,7 +71,7 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
         
         while(true){
             //Initilize connection to server
-            cout << "UDP: Attempting to connect to server..." << endl;
+            printf("UDP: Attempting to connect to server...\n");
             for(int i=0; i<5; i++)
             {
                 int ibuf[1];
@@ -93,14 +110,15 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
                     continue;
                 }
                 imshow("recv", frame);
+                lastFrame = frame;
                 free(longbuf);
 
                 waitKey(1);
                 clock_t next_cycle = clock();
                 double duration = (next_cycle - last_cycle) / (double) CLOCKS_PER_SEC;
-                cout << "\tUDP: effective FPS:" << (1 / duration) << " \tkbps:" << (PACK_SIZE * total_pack / duration / 1024 * 8) << endl;
+                //cout << "\tUDP: effective FPS:" << (1 / duration) << " \tkbps:" << (PACK_SIZE * total_pack / duration / 1024 * 8) << endl;
 
-                cout << next_cycle - last_cycle;
+                //cout << next_cycle - last_cycle;
                 last_cycle = next_cycle;
             }
         }
@@ -110,7 +128,7 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
     }
 }
 
-UDPStream::UDPStream(){}
+
 int main(int argc, char * argv[]) {
         if ((argc < 4) || (argc > 4)) { // Test for correct number of arguments
         cerr << "Usage: " << argv[0] << " <Server> <TCP Port> <UDP Port>\n";
@@ -121,17 +139,19 @@ int main(int argc, char * argv[]) {
     unsigned short servPortUDP = Socket::resolveService(argv[3], "udp");
     unsigned short servPortTCP = Socket::resolveService(argv[2], "tcp");
     
+    Mat *m = new Mat();
+    UDPStream *udpStream = new UDPStream();
     TCPStream *tcpStream = new TCPStream();
-    cout << "MAIN: Starting TCP Thread" << endl;
-    thread tcpThread(&TCPStream::connect,tcpStream, servAddress, servPortTCP);
-    
+
+    printf("MAIN: Starting TCP Thread\n");
+    thread tcpThread(&TCPStream::connect,tcpStream, servAddress, servPortTCP, udpStream);
+
     do{
-        cout << "MAIN: Waiting for tcp connection" << endl;
+        printf("MAIN: Waiting for tcp connection\n");
         this_thread::sleep_for(chrono::seconds(2));
     }while(!tcpStream->isConnected());
     
-    UDPStream *udpStream = new UDPStream();
-    cout << "MAIN: Starting UDP thread" << endl;
+    printf("MAIN: Starting UDP thread\n");
     thread udpThread(&UDPStream::connect,udpStream, servAddress, servPortUDP);
     
     tcpThread.join();

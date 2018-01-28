@@ -25,21 +25,8 @@ class Client
 private:
 
 public:
-    Client();
-    ~Client();
-};
-
-
-class TCPStream
-{
-private:
-    int connected;
-    //char buffer[BUF_LEN];
-public:
-    TCPStream();
-    ~TCPStream();
-    void connect(string ip, unsigned short port);
-    int isConnected(){ return connected; }
+    //TCPStream tcpStream;
+    //UDPStream udpStream;
 };
 
 
@@ -47,11 +34,23 @@ class UDPStream
 {
 private:
     Mat lastFrame;
+    
 public:
     UDPStream();
     ~UDPStream();
     void connect(string address, unsigned short port);
     Mat getLastFrame(){ return lastFrame; }
+};
+
+class TCPStream
+{
+private:
+    int connected;
+public:
+    TCPStream();
+    ~TCPStream();
+    void connect(string ip, unsigned short port, UDPStream *vidStream);
+    int isConnected(){ return connected; }
 };
 
 #endif // CLIENT_H
