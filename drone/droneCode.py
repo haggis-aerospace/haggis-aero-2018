@@ -15,7 +15,7 @@ nav = None
 vehicle = None
 server = None
 
-def main():
+def main(rotation=False, goTo=False, run=False, alt=False):
     global nav, vehicle, server
 
     # Get some vehicle attributes (state)
@@ -32,13 +32,6 @@ def main():
     vehicle.groundspeed = 1
     print "Max Speed Set"
 
-    letters = {
-        "X": lookAtLetter,
-        "Y": gotoLetter,
-        #"A": runFromLetter,
-        "T": landLetter,
-    }
-
     #Loop contains all instructions drone will execute
     while True:
 
@@ -48,18 +41,24 @@ def main():
             print "Waiting for Arm..."
         if vehicle.armed == False: # Arm drone and climb to 10m once in guided mode
             print "Arming..."
-            nav.arm_and_takeoff(1.5)
+            nav.arm_and_takeoff(3)
 
         #Main Program execution code
         if vehicle.mode.name == "GUIDED":
 
             #Test code
-            try:
-                letter = server.getLastLetter().letter
-                func = letters[letter]
-                func()
-            except KeyError:
-                None
+            letter = server.getLastLetter()
+            print str(letter.width) + "," + str(letter.height)
+            if letter.width > 0 and letter.height > 0:
+                if(rotation):
+                    lookAtLetter()
+                if(goTo):
+                    runFromLetter()
+                elif(run):
+                    runFromLetter()
+                if(alt):
+                    letterHeight()
+
             time.sleep(0.2)
         else:
             time.sleep(3) #If not in guided mode, wait
@@ -71,7 +70,7 @@ def main():
 
 def lookAtLetter():
     global server, nav
-    pos = server.getLastLetter().pos
+    pos = server.getLastLetter().x
     while (pos < 40 or pos > 60) and server.getLastLetter().width > 0:
         if pos > 60:
             print "Turning Left"
@@ -80,23 +79,48 @@ def lookAtLetter():
             print "Turning Right"
             nav.condition_yaw(003, True)
         time.sleep(0.1)
-        pos = server.getLastLetter().pos
+        pos = server.getLastLetter().x
+
 
 def gotoLetter():
     global server,nav
     time.sleep(2)
-    baseSize = server.getLastLetter().avSize
-    while server.getLastLetter().letter == "Y":
+    baseSize = server.getLastLetter().width * server.getLastLetter().height
+    while server.getLastLetter().width > 0:
         lookAtLetter()
-        if server.getLastLetter().avSize < baseSize*0.9:
+        if server.getLastLetter().width * server.getLastLetter().height < baseSize*0.9:
             print "Moving Forward"
             nav.send_body_ned_velocity(0.15,0,0,300)
-        elif server.getLastLetter().avSize > baseSize*1.1:
+        elif server.getLastLetter().width * server.getLastLetter().height > baseSize*1.1:
             print "Moving Backwards"
             nav.send_body_ned_velocity(-0.15,0,0,300)
 
+
 def runFromLetter():
-    return None
+    global server,nav
+    time.sleep(2)
+    baseSize = server.getLastLetter().width * server.getLastLetter().height
+    while server.getLastLetter().width > 0:
+        lookAtLetter()
+        if server.getLastLetter().width * server.getLastLetter().height > baseSize*1.1:
+            print "Moving Backwards"
+            nav.send_body_ned_velocity(-0.15,0,0,300)
+
+
+def letterHeight():
+    global server,nav
+    lookAtLetter()
+    pos = server.getLastLetter().y
+    while (pos < 40 or pos > 60) and server.getLastLetter().width > 0:
+        if pos > 60:
+            print "Letter Decending"
+            nav.altChangeRelative(-0.2, True)
+        elif pos < 40:
+            print "Letter Climbing"
+            nav.altChangeRelative(0.2, True)
+            time.sleep(0.1)
+        lookAtLetter()
+        pos = server.getLastLetter().y
 
 def landLetter():
     nav.returnToLaunch(10)
@@ -113,8 +137,7 @@ def flySquare(dist=5):
     nav.goto(0, dist*-1, 0.5, 1)
 
 
-
-def initilize():
+def initilize(rotation=True,goTo=False, run=False,alt=False):
     global vehicle
     global nav
     global server
@@ -131,7 +154,7 @@ def initilize():
 
         print "\nInitializing navigation"
         nav = NavClass(vehicle)
-        main()
+        main(rotation, goTo, run, alt)
 
     # Bad TCP connection
     except socket.error:

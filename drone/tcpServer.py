@@ -14,6 +14,7 @@ class Letter:
         self.avSize = avSize
         self.time = int(round(time.time() * 1000))
 
+
 letter = Letter(None, 0, 0, 0, 0, 0, 0)
 client_connected = False
 
@@ -24,7 +25,7 @@ class Server(object):
 
     def __init__(self, host="0.0.0.0", port=5463):
         global server
-        server = ThreadedTCPServer((host,port), ThreadedTCPRequestHandler)
+        server = ThreadedTCPServer((host, port), ThreadedTCPRequestHandler)
         server_thread = threading.Thread(target=server.serve_forever)
         server_thread.daemon = True
         server_thread.start()
@@ -46,7 +47,6 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
                 break
             print "Received: " + str(data)
             values = data.split(",")
-            print "Len: " + str(len(values))
             if len(values) < 7:
                 print "Error, invalid data received"
                 letter = Letter("~", 0, 0, 0, 0, 0, 0)
@@ -54,9 +54,8 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
             else:
                 if not client_connected:
                     client_connected = True
-                print "Letter data received"
-                letter = Letter(values[0], values[1], values[2], values[3], values[4], values[5], values[6])
-            data = None
+                letter = Letter(values[0], int(values[1]), int(values[2]), int(values[3]),
+                                int(values[4]), int(values[5]), int(values[6]))
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):

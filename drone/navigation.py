@@ -13,6 +13,24 @@ class NavClass:
         global vehicle
         vehicle = vehicleRef
 
+    def altChangeRelative(self, altChange=0.2, wait=False):
+        print "Changing altitude by " + str(altChange)
+        currentLoc = vehicle.location.global_relative_frame
+        newAlt = currentLoc.alt + altChange
+        currentLoc.alt = newAlt  # Modifying altitude to climb at current location
+        vehicle.simple_goto(currentLoc)
+
+        if wait:
+            while True:
+                print " Altitude: ", vehicle.location.global_relative_frame.alt
+                #Break and return from function just below target altitude.
+                if vehicle.location.global_relative_frame.alt >= newAlt*0.95:
+                    print "Reached target altitude"
+                    break
+                time.sleep(1)
+
+
+
     def returnToLaunch(self, height=30,land=True):
         global vehicle
 
