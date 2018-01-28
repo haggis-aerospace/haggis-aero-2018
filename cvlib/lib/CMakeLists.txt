@@ -1,5 +1,5 @@
 find_package( OpenCV REQUIRED )
-set(SOURCE_FILES library.cpp library.h camLib.h camLib.cpp)
+set(SOURCE_FILES library.h camLib.h camLib.cpp settings.cpp settings.h)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 add_library(cvlib SHARED ${SOURCE_FILES})

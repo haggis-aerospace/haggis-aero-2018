@@ -8,6 +8,7 @@ using namespace std;
 
 
 int main(int argc, char** argv ) {
+    /*
     std::deque<double> frames;
     camLib* camAPI = new camLib(true);
     std::clock_t timer = std::clock();   //For calculating FPS
@@ -37,4 +38,6 @@ int main(int argc, char** argv ) {
         
         timer = std::clock();
     }
+    */
+    cout << "No current demo avaliable" << endl;
 }
