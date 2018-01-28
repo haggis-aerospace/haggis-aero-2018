@@ -42,6 +42,8 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         global letter, client_connected
         while True:
             data = self.request.recv(100)
+            if not data:
+                break
             print "Received: " + str(data)
             values = data.split(",")
             print "Len: " + str(len(values))
