@@ -74,23 +74,37 @@ Letter camLib::findLetter( Mat src )
     medianBlur(src, src, 15);
     Mat hsv;    //Conversion to HSV colour space
     cvtColor(src, hsv, CV_BGR2HSV);
-    //FilterImg is run asyncronously to process 3 mats at once
-    vector<thread> threads;
-    future<Mat> f_DRM = async(&camLib::filterImg, this, hsv, RED_DARK_MIN, RED_DARK_MAX, "");
-    future<Mat> f_LRM = async(&camLib::filterImg, this, hsv, RED_LIGHT_MIN, RED_LIGHT_MAX, "");
-    future<Mat> f_WM  = async(&camLib::filterImg, this, hsv, WHITE_MIN, WHITE_MAX, "White");
-    
-    Mat redMat = f_DRM.get();
-    Mat LRedMat = f_LRM.get();        
-    combineMat(redMat, LRedMat);
-    imshow("Red", redMat);
-    Mat whiteMat = f_WM.get();
-    
-    future<int> f_d_RM = async(&camLib::detectEdge, this, std::ref(whiteMat), true);
-    future<int> f_d_WM = async(&camLib::detectEdge, this, std::ref(redMat), true);
-    f_d_RM.get();
-    f_d_WM.get();
-    cv::bitwise_and(redMat, whiteMat, output);
+    Mat redMat;
+        Mat whiteMat;
+        
+        if(THREADED){
+            vector<thread> threads;
+            future<Mat> f_DRM = async(&camLib::filterImg, this,hsv, RED_DARK_MIN, RED_DARK_MAX, "");
+            future<Mat> f_LRM = async(&camLib::filterImg, this,hsv, RED_LIGHT_MIN, RED_LIGHT_MAX, "");
+            future<Mat> f_WM  = async(&camLib::filterImg, this,hsv, WHITE_MIN, WHITE_MAX, "White");
+
+            redMat = f_DRM.get();
+            Mat LRedMat = f_LRM.get();        
+            combineMat(redMat, LRedMat);                
+
+            whiteMat = f_WM.get();
+
+            future<int> f_d_RM = async(&camLib::detectEdge, this,std::ref(whiteMat), true);
+            future<int> f_d_WM = async(&camLib::detectEdge, this,std::ref(redMat), true);
+            f_d_RM.get();
+            f_d_WM.get();
+        }else{
+            redMat = filterImg(hsv, RED_DARK_MIN, RED_DARK_MAX, "");
+            Mat LRedMat = filterImg(hsv, RED_LIGHT_MIN, RED_LIGHT_MAX, "");
+            whiteMat = filterImg(hsv, WHITE_MIN, WHITE_MAX, "White");
+            
+            combineMat(redMat, LRedMat);
+            
+            detectEdge(whiteMat, true);
+            detectEdge(redMat, true);
+        }
+        imshow("Red", redMat);
+        cv::bitwise_and(redMat, whiteMat, output);
     
     imshow("Output", output);
     imshow("Region", src);

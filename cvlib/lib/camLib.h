@@ -17,6 +17,8 @@
 using namespace cv;
 using namespace std;
 
+#define THREADED 0
+
 struct Letter {
     char letter = '~';
     int width = 0;    //Size of bounding box

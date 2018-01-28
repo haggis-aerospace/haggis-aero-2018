@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <future>
 
+#define THREADED 0
+
 using namespace cv;
 using namespace std;
 
@@ -177,23 +179,36 @@ int main( int argc, char** argv )
         Mat hsv;    //Conversion to HSV colour space
         cvtColor(src, hsv, CV_BGR2HSV);
         
+        Mat redMat;
+        Mat whiteMat;
         
-        vector<thread> threads;
-        future<Mat> f_DRM = async(filterImg,hsv, RED_DARK_MIN, RED_DARK_MAX, "");
-        future<Mat> f_LRM = async(filterImg,hsv, RED_LIGHT_MIN, RED_LIGHT_MAX, "");
-        future<Mat> f_WM  = async(filterImg,hsv, WHITE_MIN, WHITE_MAX, "White");
+        if(THREADED){
+            vector<thread> threads;
+            future<Mat> f_DRM = async(filterImg,hsv, RED_DARK_MIN, RED_DARK_MAX, "");
+            future<Mat> f_LRM = async(filterImg,hsv, RED_LIGHT_MIN, RED_LIGHT_MAX, "");
+            future<Mat> f_WM  = async(filterImg,hsv, WHITE_MIN, WHITE_MAX, "White");
 
-        Mat redMat = f_DRM.get();
-        Mat LRedMat = f_LRM.get();        
-        combineMat(redMat, LRedMat);                
+            redMat = f_DRM.get();
+            Mat LRedMat = f_LRM.get();        
+            combineMat(redMat, LRedMat);                
+
+            whiteMat = f_WM.get();
+
+            future<int> f_d_RM = async(detectEdge,std::ref(whiteMat), true);
+            future<int> f_d_WM = async(detectEdge,std::ref(redMat), true);
+            f_d_RM.get();
+            f_d_WM.get();
+        }else{
+            redMat = filterImg(hsv, RED_DARK_MIN, RED_DARK_MAX, "");
+            Mat LRedMat = filterImg(hsv, RED_LIGHT_MIN, RED_LIGHT_MAX, "");
+            whiteMat = filterImg(hsv, WHITE_MIN, WHITE_MAX, "White");
+            
+            combineMat(redMat, LRedMat);
+            
+            detectEdge(whiteMat, true);
+            detectEdge(redMat, true);
+        }
         imshow("Red", redMat);
-
-        Mat whiteMat = f_WM.get();
-
-        future<int> f_d_RM = async(detectEdge,std::ref(whiteMat), true);
-        future<int> f_d_WM = async(detectEdge,std::ref(redMat), true);
-        f_d_RM.get();
-        f_d_WM.get();
         cv::bitwise_and(redMat, whiteMat, output);
         
         imshow("Output", output);
