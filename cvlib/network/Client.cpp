@@ -69,7 +69,7 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
 
         clock_t last_cycle = clock();
         sock.setRecvTimeout(5);
-        
+        VideoWriter writer;
         while(true){
             //Initilize connection to server
             printf("UDP: Attempting to connect to server...\n");
@@ -113,8 +113,13 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
                 imshow("recv", frame);
                 lastFrame = frame;
                 free(longbuf);
-
-                waitKey(1);
+                
+                if(!frame.empty()){
+                    if(!writer.isOpened())
+                        writer.open("downStream.avi", CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
+                    writer.write(frame);
+                }
+                waitKey(5);
                 clock_t next_cycle = clock();
                 double duration = (next_cycle - last_cycle) / (double) CLOCKS_PER_SEC;
                 //cout << "\tUDP: effective FPS:" << (1 / duration) << " \tkbps:" << (PACK_SIZE * total_pack / duration / 1024 * 8) << endl;

@@ -94,9 +94,9 @@ int main(int argc, char * argv[]) {
             cout << "\teffective FPS:" << (1 / ((double)duration/1000)) << " \tMbps:" << (PACK_SIZE * total_pack / ((double)duration/1000) / 1024 / 1024) << endl;
 
             last_cycle = next_cycle;
-            double sleep = (1.0/(double)FRAME_RATE*1000000.0);
+            //double sleep = (1.0/(double)FRAME_RATE*1000000.0);
             //printf("Sleep: %.3f  Duration %.3f\n", sleep, duration*1000);
-            usleep((1.0/(double)FRAME_RATE*1000000.0) - duration*1000);
+            usleep((83000));
         }
         // Destructor closes the socket
 
