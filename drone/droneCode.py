@@ -143,7 +143,8 @@ def initilize(rotation=True,goTo=False, run=False,alt=False):
 
     try:
         print "Connecting to vehicle..."
-        vehicle = connect('127.0.0.1:14550', wait_ready=True)  #Connect to vehicle and initialize home location
+        vehicle = connect('/dev/ttyACM0', wait_ready=True,baud=57600)  # Connect to vehicle and initialize home location
+        # vehicle = connect('127.0.0.1:14550', wait_ready=True)  #Connect to vehicle and initialize home location
         vehicle.home_location = vehicle.location.global_frame
 
         print "Waiting for client to connect..."
