@@ -8,7 +8,7 @@
 #include <thread>
 #include <time.h>
 #include <chrono>
-#include "settings.h"
+#include "fileIO.h"
 #include <future>
 
 #ifndef CAMLIB_H
@@ -17,7 +17,8 @@
 using namespace cv;
 using namespace std;
 
-#define THREADED 0
+colourData colours;
+
 
 struct Letter {
     char letter = '~';
@@ -40,18 +41,27 @@ private:
     cv::Scalar RED_LIGHT_MAX;
     cv::Scalar RED_DARK_MIN;
     cv::Scalar RED_DARK_MAX;
-    colourData colours;
-    const int REGION_MIN_PERCENTAGE_SIZE = 10;
+    const int REGION_MIN_PERCENTAGE_SIZE = 5;
+    int blurSize;
     
+
     int combineMat(Mat &src, Mat img2);
     int detectEdge(Mat &src, bool blur=true);
     Mat filterImg(Mat input, Scalar min, Scalar max, string name="");
+    
+    
 
+    
 public:
     void loadColourData();
     Letter findLetter( Mat src );
     camLib();
     ~camLib();
 };
+
+
+bool valueChanged = false;    
+void on_trackbar( int, void* );
+void initTrackbars();
 
 #endif // CAMLIB_H
