@@ -8,6 +8,15 @@ using namespace cv;
 camLib::camLib(){ 
     initTrackbars();
     loadColourData();
+    namedWindow("Region", 1);
+        moveWindow("Region", 100, 100);
+    namedWindow("Output", 1);
+        moveWindow("Output", 100+320,100);
+    namedWindow("White", 1);
+        moveWindow("White", 100,100+240);
+    namedWindow("Red", 1);
+        moveWindow("Red", 100+320,100+240);
+
 }
 camLib::~camLib(){}
 
@@ -106,8 +115,11 @@ Letter camLib::findLetter( Mat src )
     
     findContours(output,contoursH, hierarchyH, CV_RETR_TREE , CV_CHAIN_APPROX_SIMPLE);
     
-    if(contoursH.size() <= 0)
+    if(contoursH.size() <= 0){
+        imshow("Region", src);
+        cv::waitKey(5);
         return letterOut;
+    }
     
     //Find Max
     int maxIndex = 0;
@@ -125,14 +137,15 @@ Letter camLib::findLetter( Mat src )
     }
         
     rectangle(src, boundingRect(contoursH.at(maxIndex)), Scalar(0,0,255),5); 
-    imshow("Region", src);
     
+    imshow("Region", src);
+    cv::waitKey(5);
+
     letterOut.letter = '~';
     letterOut.width = region.width;
     letterOut.height = region.height;
     letterOut.x = ((double)region.x+((double)region.width/2.0)) / (double)src.cols * 100.0;
     letterOut.y = ((double)region.y+((double)region.height/2.0)) / (double)src.rows * 100.0;
-    cv::waitKey(5);
     
     return letterOut;
 }
@@ -174,8 +187,8 @@ void initTrackbars()
     valueChanged = false;
     
     namedWindow("Settings", 1);
-
-    
+    moveWindow("Settings", 100+320*2,100);
+        
     /// Create Trackbars
     //WHITE
     char T_W_MIN_V[50]; //Trackbar White Min Value
