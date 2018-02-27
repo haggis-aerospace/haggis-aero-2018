@@ -40,8 +40,10 @@ Mat camLib::filterImg(Mat input, Scalar min, Scalar max, string name)
     Mat Hue;
     origHue.copyTo(Hue);
     
-    if(name != "")
+    if(name != ""){
         imshow(name.c_str(), Hue);
+    	cv::waitKey(1);
+    }
     return Hue;
 }
 
@@ -84,7 +86,12 @@ Letter camLib::findLetter( Mat src )
         loadColourData();
 
     Letter letterOut;
-    if(!src.data){ return letterOut; }
+
+    if(!src.data){ cout << "No Data" << endl; return letterOut; }
+    
+//    imshow("Region", src);
+//    return letterOut;
+
     Mat output(src.rows, src.cols, CV_8UC3, Scalar(0, 0, 0));
     //medianBlur(src, src, 15);
     Mat hsv;    //Conversion to HSV colour space
@@ -98,9 +105,11 @@ Letter camLib::findLetter( Mat src )
     
     medianBlur(redMat, redMat, 7);
     imshow("Red", redMat);
-    
+    cv::waitKey(1);
+
     medianBlur(whiteMat, whiteMat, 7);
     imshow("White", whiteMat);
+    cv::waitKey(1);
 
     detectEdge(whiteMat, false);
     detectEdge(redMat, false);
@@ -108,16 +117,16 @@ Letter camLib::findLetter( Mat src )
     cv::bitwise_and(redMat, whiteMat, output);
     
     imshow("Output", output);
-    
+    cv::waitKey(1);
+
     //Retrieving image contours, used to determine ROI's
     std::vector<std::vector<cv::Point>> contoursH;
     std::vector<cv::Vec4i> hierarchyH;  
     
     findContours(output,contoursH, hierarchyH, CV_RETR_TREE , CV_CHAIN_APPROX_SIMPLE);
-    
     if(contoursH.size() <= 0){
         imshow("Region", src);
-        cv::waitKey(5);
+        cv::waitKey(1);
         return letterOut;
     }
     
@@ -132,14 +141,14 @@ Letter camLib::findLetter( Mat src )
     //cout << region.width/src.cols*100 << ", " << region.height/src.rows*100 << endl;
     if((double)region.width/(double)src.cols*100.0 < (double)REGION_MIN_PERCENTAGE_SIZE || (double)region.height/(double)src.rows*100.0 < (double)REGION_MIN_PERCENTAGE_SIZE){
         imshow("Region", src);
-        cv::waitKey(5);
+        cv::waitKey(1);
         return letterOut;
     }
         
     rectangle(src, boundingRect(contoursH.at(maxIndex)), Scalar(0,0,255),5); 
     
     imshow("Region", src);
-    cv::waitKey(5);
+    cv::waitKey(1);
 
     letterOut.letter = '~';
     letterOut.width = region.width;

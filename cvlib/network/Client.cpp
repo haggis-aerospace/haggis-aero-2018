@@ -110,7 +110,7 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
                     cerr << "decode failure!" << endl;
                     continue;
                 }
-                imshow("recv", frame);
+                //imshow("recv", frame);
                 lastFrame = frame;
                 free(longbuf);
                 
@@ -119,7 +119,6 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
                         writer.open("downStream.avi", CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
                     writer.write(frame);
                 }
-                waitKey(5);
                 clock_t next_cycle = clock();
                 double duration = (next_cycle - last_cycle) / (double) CLOCKS_PER_SEC;
                 //cout << "\tUDP: effective FPS:" << (1 / duration) << " \tkbps:" << (PACK_SIZE * total_pack / duration / 1024 * 8) << endl;
