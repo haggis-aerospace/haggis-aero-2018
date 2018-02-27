@@ -91,12 +91,12 @@ int main(int argc, char * argv[]) {
             
             clock_t next_cycle = clock();
             double duration = (next_cycle - last_cycle) / ((double) CLOCKS_PER_SEC/1000);
-            cout << "\teffective FPS:" << (1 / ((double)duration/1000)) << " \tMbps:" << (PACK_SIZE * total_pack / ((double)duration/1000) / 1024 / 1024) << endl;
+            cout << "\teffective FPS:" << (1 / ((double)duration/1000)) << " \tMbps:" << (PACK_SIZE * total_pack / (1.0/(double)FRAME_RATE) / 1024 / 1024) << endl;
 
             last_cycle = next_cycle;
             //double sleep = (1.0/(double)FRAME_RATE*1000000.0);
             //printf("Sleep: %.3f  Duration %.3f\n", sleep, duration*1000);
-            usleep((83000));
+            usleep((1000000/FRAME_RATE));
         }
         // Destructor closes the socket
 
