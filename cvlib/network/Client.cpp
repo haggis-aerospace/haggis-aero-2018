@@ -65,79 +65,91 @@ UDPStream::UDPStream(){}
 
 void UDPStream::connect(string servAddress, unsigned short servPort)
 {
-    try {
-        UDPSocket sock;
+    while(true){
+        try {
+            UDPSocket sock;
 
-        char buffer[BUF_LEN]; // Buffer for echo string
-        int recvMsgSize; // Size of received message
+            char buffer[BUF_LEN]; // Buffer for echo string
+            int recvMsgSize; // Size of received message
 
-        clock_t last_cycle = clock();
-        sock.setRecvTimeout(5);
-        VideoWriter writer;
-        while(true){
-            //Initilize connection to server
-            printf("UDP: Attempting to connect to server...\n");
-            for(int i=0; i<1; i++)
-            {
-                int ibuf[1];
-                ibuf[0] = 1;
-                sock.sendTo(ibuf, sizeof(int), servAddress, servPort);            
-            }
-            
-            //printf("UDP: Waiting to Receive...\n");
-            while (1) {
-                        
-                // Block until receive message from a client
-                do {
-                    recvMsgSize = sock.recvFrom(buffer, BUF_LEN, servAddress, servPort);
-                    if(recvMsgSize == EWOULDBLOCK || recvMsgSize == EWOULDBLOCK)
-                        break;
-                } while (recvMsgSize > sizeof(int));
-                int total_pack = ((int * ) buffer)[0];
+            clock_t last_cycle = clock();
+            sock.setRecvTimeout(VIDEO_TIMEOUT_SECONDS);
+            VideoWriter writer;
+            try{
+                //Initilize connection to server
+                printf("UDP: Attempting to connect to server...\n");
+                for(int i=0; i<1; i++)
+                {
+                    int ibuf[1];
+                    ibuf[0] = 1;
+                    sock.sendTo(ibuf, sizeof(int), servAddress, servPort);            
+                }
+                
+                //printf("UDP: Waiting to Receive...\n");
+                while (1) {
+                            
+                    // Block until receive message from a client
+                    do {
+                        recvMsgSize = sock.recvFrom(buffer, BUF_LEN, servAddress, servPort);
+                        if(recvMsgSize == EWOULDBLOCK || recvMsgSize == EAGAIN)
+                        {
+                                cout << "Breaking " << endl;
+                                break;
+                        }
+                    } while (recvMsgSize > sizeof(int));
+                    int total_pack = ((int * ) buffer)[0];
 
-                //cout << "UDP: expecting length of packs:" << total_pack << endl;
-                char * longbuf = new char[PACK_SIZE * total_pack];
-                for (int i = 0; i < total_pack; i++) {
-                    recvMsgSize = sock.recvFrom(buffer, BUF_LEN, servAddress, servPort);
-                    if (recvMsgSize != PACK_SIZE) {
-                        cerr << "UDP: Received unexpected size pack:" << recvMsgSize << endl;
+                    //cout << "UDP: expecting length of packs:" << total_pack << endl;
+                    char * longbuf = new char[PACK_SIZE * total_pack];
+                    for (int i = 0; i < total_pack; i++) {
+                        recvMsgSize = sock.recvFrom(buffer, BUF_LEN, servAddress, servPort);
+                        if (recvMsgSize != PACK_SIZE) {
+                            cerr << "UDP: Received unexpected size pack:" << recvMsgSize << endl;
+                            continue;
+                        }
+                        memcpy( & longbuf[i * PACK_SIZE], buffer, PACK_SIZE);
+                    }
+
+                    //cout << "UDP: Received packet from " << servAddress << ":" << servPort << endl;
+         
+                    Mat rawData = Mat(1, PACK_SIZE * total_pack, CV_8UC1, longbuf);
+                    Mat frame = imdecode(rawData, CV_LOAD_IMAGE_COLOR);
+                    if (frame.size().width == 0) {
+                        cerr << "decode failure!" << endl;
                         continue;
                     }
-                    memcpy( & longbuf[i * PACK_SIZE], buffer, PACK_SIZE);
-                }
-
-                //cout << "UDP: Received packet from " << servAddress << ":" << servPort << endl;
-     
-                Mat rawData = Mat(1, PACK_SIZE * total_pack, CV_8UC1, longbuf);
-                Mat frame = imdecode(rawData, CV_LOAD_IMAGE_COLOR);
-                if (frame.size().width == 0) {
-                    cerr << "decode failure!" << endl;
-                    continue;
-                }
-                //imshow("recv", frame);
-                lastFrame = frame;
-                free(longbuf);
-                
-                if(!frame.empty()){
-                    if(!writer.isOpened()){
-                        std::time_t time = chrono::system_clock::to_time_t(chrono::system_clock::now());
-                        string fileName = " downStream.avi";
-                        fileName = ctime(&time) + fileName;
-                        writer.open(fileName, CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
+                    //imshow("recv", frame);
+                    lastFrame = frame;
+                    free(longbuf);
+                    
+                    if(!frame.empty()){
+                        if(!writer.isOpened()){
+                            std::time_t time = chrono::system_clock::to_time_t(chrono::system_clock::now());
+                            string fileName = " downStream.avi";
+                            fileName = ctime(&time) + fileName;
+                            writer.open(fileName, CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
+                        }
+                        writer.write(frame);
                     }
-                    writer.write(frame);
-                }
-                clock_t next_cycle = clock();
-                double duration = (next_cycle - last_cycle) / (double) CLOCKS_PER_SEC;
-                //cout << "\tUDP: effective FPS:" << (1 / duration) << " \tkbps:" << (PACK_SIZE * total_pack / duration / 1024 * 8) << endl;
+                    clock_t next_cycle = clock();
+                    double duration = (next_cycle - last_cycle) / (double) CLOCKS_PER_SEC;
+                    //cout << "\tUDP: effective FPS:" << (1 / duration) << " \tkbps:" << (PACK_SIZE * total_pack / duration / 1024 * 8) << endl;
 
-                //cout << next_cycle - last_cycle;
-                last_cycle = next_cycle;
+                    //cout << next_cycle - last_cycle;
+                    last_cycle = next_cycle;
+                }
+            } catch (SocketException & e) {
+                cerr << e.what() << endl;
+                cout << "Server connection lost" << endl;
+                sock.cleanUp();
+                Mat blankMat;
+                lastFrame = blankMat;
             }
+        } catch (SocketException & e) {
+            cerr << e.what() << endl;
+            cout << "Error occoured during initial connection" << endl;
+            exit(1);
         }
-    } catch (SocketException & e) {
-        cerr << e.what() << endl;
-        exit(1);
     }
 }
 

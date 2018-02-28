@@ -338,8 +338,8 @@ int UDPSocket::recvFrom(void *buffer, int bufferLen, string &sourceAddress,
   sockaddr_in clntAddr;
   socklen_t addrLen = sizeof(clntAddr);
   int rtn;
-  if ((rtn = recvfrom(sockDesc, (raw_type *) buffer, bufferLen, 0, 
-                      (sockaddr *) &clntAddr, (socklen_t *) &addrLen)) < 0) {
+  rtn = recvfrom(sockDesc, (raw_type *) buffer, bufferLen, 0, (sockaddr *) &clntAddr, (socklen_t *) &addrLen);
+  if (rtn < 0 && (rtn != EWOULDBLOCK && rtn != EAGAIN)) {
     throw SocketException("Receive failed (recvfrom())", true);
   }
   sourceAddress = inet_ntoa(clntAddr.sin_addr);
@@ -351,8 +351,9 @@ int UDPSocket::recvFrom(void *buffer, int bufferLen, string &sourceAddress,
 void UDPSocket::setRecvTimeout(int timeout)
 {
     struct timeval tv;
-    tv.tv_sec = timeout;  /* 30 Secs Timeout */
-    setsockopt(sockDesc, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+    tv.tv_sec = timeout;
+    tv.tv_usec = 0;
+    setsockopt(sockDesc, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 }
 
 
