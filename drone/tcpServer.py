@@ -45,10 +45,11 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
             data = self.request.recv(100)
             if not data:
                 print "Client disconnected"
+                client_connected = False
                 break
             print "Received: " + str(data)
             values = data.split(",")
-            if len(values) < 7:
+            if len(values) != 7:
                 print "Error, invalid data received"
                 letter = Letter("~", 0, 0, 0, 0, 0, 0)
                 time.sleep(1)
