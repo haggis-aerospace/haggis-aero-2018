@@ -2,6 +2,10 @@
 #include <unistd.h>
 #include <sstream>
 #include <X11/Xlib.h>
+#include <chrono>
+#include <ctime>
+#include <iostream>
+
 using namespace std;
 using namespace cv;
 
@@ -115,8 +119,12 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
                 free(longbuf);
                 
                 if(!frame.empty()){
-                    if(!writer.isOpened())
-                        writer.open("downStream.avi", CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
+                    if(!writer.isOpened()){
+                        std::time_t time = chrono::system_clock::to_time_t(chrono::system_clock::now());
+                        string fileName = " downStream.avi";
+                        fileName = ctime(&time) + fileName;
+                        writer.open(fileName, CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
+                    }
                     writer.write(frame);
                 }
                 clock_t next_cycle = clock();
