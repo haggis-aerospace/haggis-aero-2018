@@ -5,3 +5,4 @@
 #define PACK_SIZE 6000 //udp pack size; note that OSX limits < 8100 bytes
 #define ENCODE_QUALITY 80
 #define VIDEO_TIMEOUT_SECONDS 2
+#define VIDEO_TIMEOUT_INITIAL_SECONDS 10

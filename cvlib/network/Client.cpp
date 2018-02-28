@@ -5,6 +5,7 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
+#include <cstdlib>
 
 using namespace std;
 using namespace cv;
@@ -73,18 +74,16 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
             int recvMsgSize; // Size of received message
 
             clock_t last_cycle = clock();
-            sock.setRecvTimeout(VIDEO_TIMEOUT_SECONDS);
             VideoWriter writer;
             try{
                 //Initilize connection to server
                 printf("UDP: Attempting to connect to server...\n");
-                for(int i=0; i<1; i++)
-                {
-                    int ibuf[1];
-                    ibuf[0] = 1;
-                    sock.sendTo(ibuf, sizeof(int), servAddress, servPort);            
-                }
+                int ibuf[1];
+                ibuf[0] = 1;
+                sock.sendTo(ibuf, sizeof(int), servAddress, servPort);            
                 
+                sock.setRecvTimeout(VIDEO_TIMEOUT_INITIAL_SECONDS);
+                bool firstRun = true;
                 //printf("UDP: Waiting to Receive...\n");
                 while (1) {
                             
@@ -127,7 +126,8 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
                             std::time_t time = chrono::system_clock::to_time_t(chrono::system_clock::now());
                             string fileName = " downStream.avi";
                             fileName = ctime(&time) + fileName;
-                            writer.open(fileName, CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
+                            system("mkdir videos");
+                            writer.open("videos/" + fileName, CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
                         }
                         writer.write(frame);
                     }
@@ -137,6 +137,12 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
 
                     //cout << next_cycle - last_cycle;
                     last_cycle = next_cycle;
+                    
+                    if(firstRun)
+                    {
+                        firstRun = false;
+                        sock.setRecvTimeout(VIDEO_TIMEOUT_SECONDS);
+                    }
                 }
             } catch (SocketException & e) {
                 cerr << e.what() << endl;

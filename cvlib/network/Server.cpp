@@ -6,6 +6,7 @@ using namespace cv;
 
 
 bool sendData = false;
+int loops = -1;
 
 int main(int argc, char * argv[]) {
 
@@ -26,13 +27,16 @@ int main(int argc, char * argv[]) {
         
         
         thread connectionThread;
-        
         while(true)
         {
             cout << "Server: Listening for connections..." << endl;
             do {
                 recvMsgSize = sock.recvFrom(buffer, BUF_LEN, clientAddress, clientPort);
             } while (recvMsgSize > sizeof(int));
+            
+            if(loops < 20)
+                continue;
+                
             cout << "Server: Client connected" << endl;
             
             
@@ -58,11 +62,11 @@ int main(int argc, char * argv[]) {
 
 void connection(string clientAddress, unsigned short clientPort, UDPSocket &sock)
 {
+    loops = 0;
     clock_t last_cycle = clock();
     int jpegqual =  ENCODE_QUALITY; // Compression Parameter
     Mat frame, send;
     vector < uchar > encoded;
-    sendData = true;
     VideoCapture cap(0);
 
     if (!cap.isOpened()) {
@@ -72,6 +76,8 @@ void connection(string clientAddress, unsigned short clientPort, UDPSocket &sock
         
     cout << "Starting data stream" << endl;
     
+    sendData = true;
+
     while (sendData) {
         cap >> frame;
         if(frame.size().width==0)continue;//simple integrity check; skip erroneous data...
@@ -100,9 +106,11 @@ void connection(string clientAddress, unsigned short clientPort, UDPSocket &sock
         //double sleep = (1.0/(double)FRAME_RATE*1000000.0);
         //printf("Sleep: %.3f  Duration %.3f\n", sleep, duration*1000);
         usleep((1000000/FRAME_RATE));
+        if(loops < 100)
+            loops++;
     }
     
     cap.release();
-    
+    loops = -1;
     cout << "Connection ended" << endl;
 }
