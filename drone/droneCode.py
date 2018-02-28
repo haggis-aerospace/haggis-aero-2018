@@ -36,12 +36,12 @@ def main(rotation=False, goTo=False, run=False, alt=False):
     while True:
 
         #Wait for mode to be set to guided
-        while vehicle.mode.name != "GUIDED":
+        while vehicle.mode.name != "GUIDED" or vehicle.armed == False:
             time.sleep(2)
-            print "Waiting for Arm..."
-        if vehicle.armed == False: # Arm drone and climb to 10m once in guided mode
-            print "Arming..."
-            nav.arm_and_takeoff(2)
+            print "Waiting for Arm in Guided..."
+        #if vehicle.armed == False: # Arm drone and climb to 10m once in guided mode
+        #    print "Arming..."
+        #    nav.arm_and_takeoff(2)
 
         #Main Program execution code
         if vehicle.mode.name == "GUIDED":
