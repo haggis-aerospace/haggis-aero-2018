@@ -44,6 +44,7 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         while True:
             data = self.request.recv(100)
             if not data:
+                print "Client disconnected"
                 break
             print "Received: " + str(data)
             values = data.split(",")

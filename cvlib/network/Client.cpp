@@ -38,7 +38,7 @@ void TCPStream::connect(const string servAddress, unsigned short servPort, UDPSt
                 
                 string toSend = ss.str();
                 const char *buffer = toSend.c_str();
-                cout << toSend << "\n";
+                cout << "Client: sending " << toSend << "\n";
                 try{
                     std::flush(cout);
                     int status = sock.send(buffer, strlen(buffer));
@@ -77,21 +77,21 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
         while(true){
             //Initilize connection to server
             printf("UDP: Attempting to connect to server...\n");
-            for(int i=0; i<5; i++)
+            for(int i=0; i<1; i++)
             {
                 int ibuf[1];
                 ibuf[0] = 1;
                 sock.sendTo(ibuf, sizeof(int), servAddress, servPort);            
             }
             
-            
+            //printf("UDP: Waiting to Receive...\n");
             while (1) {
                         
                 // Block until receive message from a client
                 do {
                     recvMsgSize = sock.recvFrom(buffer, BUF_LEN, servAddress, servPort);
-                    //if(recvMsgSize == EWOULDBLOCK || recvMsgSize == EWOULDBLOCK)
-                    //    break;
+                    if(recvMsgSize == EWOULDBLOCK || recvMsgSize == EWOULDBLOCK)
+                        break;
                 } while (recvMsgSize > sizeof(int));
                 int total_pack = ((int * ) buffer)[0];
 
