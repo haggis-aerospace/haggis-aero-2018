@@ -48,7 +48,7 @@ void on_trackbar( int, void* ){
 void initTrackbars()
 {
     /// Initialize values
-    blurSize = 15;
+    blurSize = 0;
     valueChanged = false;
     
     /// Create Trackbars
@@ -154,7 +154,7 @@ int combineMat(Mat &src, Mat img2)
 int main( int argc, char** argv )
 {
     
-    VideoCapture cap = VideoCapture(0);
+    VideoCapture cap = VideoCapture(1);
 
     /// Create Windows
     namedWindow("Settings", 1);
