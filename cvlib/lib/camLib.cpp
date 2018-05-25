@@ -145,8 +145,9 @@ Letter camLib::findLetter( Mat src )
         return letterOut;
     }
         
-    rectangle(src, boundingRect(contoursH.at(maxIndex)), Scalar(0,0,255),5); 
     
+
+    drawRotatedRect(src, minAreaRect(contoursH.at(maxIndex)));
     imshow("Region", src);
     cv::waitKey(1);
 
@@ -157,6 +158,20 @@ Letter camLib::findLetter( Mat src )
     letterOut.y = ((double)region.y+((double)region.height/2.0)) / (double)src.rows * 100.0;
     
     return letterOut;
+}
+
+
+/**
+ * @brief Draws a rotated rectangle onto a mat
+ * @param src
+ * @param rect
+ */
+void camLib::drawRotatedRect(Mat src, RotatedRect rect)
+{
+    cv::Point2f rect_points[4];
+    rect.points(rect_points);
+    for( unsigned int i=0; i < 4; i++)
+        cv::line(src, rect_points[i], rect_points[(i+1)%4], cv::Scalar(0,0,255),5);
 }
 
 

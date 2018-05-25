@@ -44,12 +44,10 @@ private:
     const int REGION_MIN_PERCENTAGE_SIZE = 5;
     int blurSize;
     
-
+    void drawRotatedRect(Mat src, RotatedRect rect);
     int combineMat(Mat &src, Mat img2);
     int detectEdge(Mat &src, bool blur=true);
     Mat filterImg(Mat input, Scalar min, Scalar max, string name="");
-    
-    
 
     
 public:
