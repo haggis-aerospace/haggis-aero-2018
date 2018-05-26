@@ -1,5 +1,5 @@
 find_package( OpenCV REQUIRED )
-set(SOURCE_FILES camLib.h camLib.cpp fileIO.cpp fileIO.h library.h)
+set(SOURCE_FILES fileIO.cpp fileIO.h library.h region_detection.h region_detection.cpp)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 add_library(cvlib SHARED ${SOURCE_FILES})

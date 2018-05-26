@@ -11,8 +11,8 @@
 #include "fileIO.h"
 #include <future>
 
-#ifndef CAMLIB_H
-#define CAMLIB_H
+#ifndef REGION_DETECTION_H
+#define REGION_DETECTION_H
 
 using namespace cv;
 using namespace std;
@@ -31,7 +31,7 @@ struct Letter {
 };
 
 
-class camLib
+class region_detection
 {
 private:
     //Main configuration values
@@ -52,9 +52,9 @@ private:
     
 public:
     void loadColourData();
-    Letter findLetter( Mat src );
-    camLib();
-    ~camLib();
+    Mat findRegion( Mat src );
+    region_detection();
+    ~region_detection();
 };
 
 
@@ -62,4 +62,4 @@ bool valueChanged = false;
 void on_trackbar( int, void* );
 void initTrackbars();
 
-#endif // CAMLIB_H
+#endif // region_detection_H

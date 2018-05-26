@@ -1,11 +1,11 @@
-#include "camLib.h"
+#include "region_detection.h"
 #include <regex>
 #include <vector>
 
 using namespace std;
 using namespace cv;
 
-camLib::camLib(){ 
+region_detection::region_detection(){ 
     initTrackbars();
     loadColourData();
     namedWindow("Region", 1);
@@ -18,7 +18,7 @@ camLib::camLib(){
         moveWindow("Red", 100+320,100+240);
 
 }
-camLib::~camLib(){}
+region_detection::~region_detection(){}
 
 
 /**
@@ -29,7 +29,7 @@ camLib::~camLib(){}
  * @param name
  * @return 
  */
-Mat camLib::filterImg(Mat input, Scalar min, Scalar max, string name)
+Mat region_detection::filterImg(Mat input, Scalar min, Scalar max, string name)
 {
     inRange(input, min, max, input);  //Filter out all colours except white/light grey
     
@@ -53,7 +53,7 @@ Mat camLib::filterImg(Mat input, Scalar min, Scalar max, string name)
  * @param blur
  * @return 
  */
-int camLib::detectEdge(Mat &src, bool blur)
+int region_detection::detectEdge(Mat &src, bool blur)
 {
     //if(blur)
     //    medianBlur(src, src, 11);
@@ -69,7 +69,7 @@ int camLib::detectEdge(Mat &src, bool blur)
  * @param img2    
  * @return 
  */
-int camLib::combineMat(Mat &src, Mat img2)
+int region_detection::combineMat(Mat &src, Mat img2)
 {
     cv::add(src, img2 , src);
     return 0;
@@ -80,14 +80,14 @@ int camLib::combineMat(Mat &src, Mat img2)
  * @param src
  * @return 
  */
-Letter camLib::findLetter( Mat src )
+Mat region_detection::findRegion( Mat src )
 {
     if(valueChanged)
         loadColourData();
 
-    Letter letterOut;
+    Mat letterRegion;
 
-    if(!src.data){ cout << "No Data" << endl; return letterOut; }
+    if(!src.data){ cout << "No Data" << endl; return letterRegion; }
     
 //    imshow("Region", src);
 //    return letterOut;
@@ -127,7 +127,7 @@ Letter camLib::findLetter( Mat src )
     if(contoursH.size() <= 0){
         imshow("Region", src);
         cv::waitKey(1);
-        return letterOut;
+        return letterRegion;
     }
     
     //Find Max
@@ -142,7 +142,7 @@ Letter camLib::findLetter( Mat src )
     if((double)region.width/(double)src.cols*100.0 < (double)REGION_MIN_PERCENTAGE_SIZE || (double)region.height/(double)src.rows*100.0 < (double)REGION_MIN_PERCENTAGE_SIZE){
         imshow("Region", src);
         cv::waitKey(1);
-        return letterOut;
+        return letterRegion;
     }
         
     
@@ -166,7 +166,7 @@ Letter camLib::findLetter( Mat src )
  * @param src
  * @param rect
  */
-void camLib::drawRotatedRect(Mat src, RotatedRect rect)
+void region_detection::drawRotatedRect(Mat src, RotatedRect rect)
 {
     cv::Point2f rect_points[4];
     rect.points(rect_points);
@@ -175,7 +175,7 @@ void camLib::drawRotatedRect(Mat src, RotatedRect rect)
 }
 
 
-void camLib::loadColourData()
+void region_detection::loadColourData()
 {
     if(!valueChanged){
         colours.readData();

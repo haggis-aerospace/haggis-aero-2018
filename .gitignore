@@ -22,3 +22,5 @@ cvlib/test/trained_classifierNM1\.xml
 cvlib/test/trained_classifierNM2\.xml
 
 *.gch
+
+*.swp

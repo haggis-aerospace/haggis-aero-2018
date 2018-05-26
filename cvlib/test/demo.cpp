@@ -15,10 +15,10 @@ using namespace cv;
 
 
 int main(int argc, char** argv ) {
-    camLib library;
-    
+    region_detection rd;
+
     while(true){
-        VideoCapture cap = VideoCapture(1);
+        VideoCapture cap = VideoCapture(0);
         Mat frame;
         //for(int i=0; i<1000; i++)
         //    cap.grab();
@@ -32,8 +32,8 @@ int main(int argc, char** argv ) {
             cap >> frame;
             counter++;
         //    cout << "Frame: " << counter << endl;
-            library.findLetter(frame);
-            
+            rd.findRegion(frame);
+
        //     clock_t next_cycle = clock();
        //     double duration = (next_cycle - last_cycle) / CLOCKS_PER_SEC;
        //     usleep((70000 - duration*1000));
