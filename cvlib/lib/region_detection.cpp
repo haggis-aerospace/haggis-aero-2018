@@ -88,12 +88,9 @@ Mat region_detection::findRegion( Mat src )
     Mat letterRegion;
 
     if(!src.data){ cout << "No Data" << endl; return letterRegion; }
-    
-//    imshow("Region", src);
-//    return letterOut;
+
 
     Mat output(src.rows, src.cols, CV_8UC3, Scalar(0, 0, 0));
-    //medianBlur(src, src, 15);
     Mat hsv;    //Conversion to HSV colour space
     cvtColor(src, hsv, CV_BGR2HSV);
 
@@ -138,26 +135,26 @@ Mat region_detection::findRegion( Mat src )
     Rect region = boundingRect(contoursH.at(maxIndex));
     
     //Filter region smaller than 10% of total image
-    //cout << region.width/src.cols*100 << ", " << region.height/src.rows*100 << endl;
     if((double)region.width/(double)src.cols*100.0 < (double)REGION_MIN_PERCENTAGE_SIZE || (double)region.height/(double)src.rows*100.0 < (double)REGION_MIN_PERCENTAGE_SIZE){
         imshow("Region", src);
         cv::waitKey(1);
         return letterRegion;
     }
-        
     
-
-    drawRotatedRect(src, minAreaRect(contoursH.at(maxIndex)));
+    RotatedRect rr = minAreaRect(contoursH.at(maxIndex));
+    drawRotatedRect(src, rr);
+    letterRegion = cropToRotatedRect(src, rr);
+    imshow("Letter", letterRegion);
     imshow("Region", src);
     cv::waitKey(1);
 
-    letterOut.letter = '~';
+    /*letterOut.letter = '~';
     letterOut.width = region.width;
     letterOut.height = region.height;
     letterOut.x = ((double)region.x+((double)region.width/2.0)) / (double)src.cols * 100.0;
     letterOut.y = ((double)region.y+((double)region.height/2.0)) / (double)src.rows * 100.0;
-    
-    return letterOut;
+    */
+    return letterRegion;
 }
 
 
@@ -174,6 +171,48 @@ void region_detection::drawRotatedRect(Mat src, RotatedRect rect)
         cv::line(src, rect_points[i], rect_points[(i+1)%4], cv::Scalar(0,0,255),5);
 }
 
+
+/**
+ * @brief Crops source image to a rotated rect
+ * @return Cropped Mat
+ */
+Mat region_detection::cropToRotatedRect(Mat src, cv::RotatedRect rect)
+{
+    Mat output(src.rows, src.cols, CV_8UC3, Scalar(0, 0, 0));
+    /*Rect ROI = rect.boundingRect();
+    if(ROI.height > ROI.width){
+        if(ROI.x + ROI.height > src.cols){
+            ROI = Rect(ROI.x, ROI.y, src.cols - ROI.x, ROI.height );
+        }else{
+            ROI = Rect(ROI.x, ROI.y, ROI.height, ROI.height );
+        }
+    }else{
+        if(ROI.y + ROI.width > src.rows){
+            ROI = Rect(ROI.x, ROI.y, ROI.width, src.rows - ROI.y );
+        }else{
+            ROI = Rect(ROI.x, ROI.y, ROI.width, ROI.width );
+        }
+    }*/
+        
+    //Rect bounds(0,0,src.cols,src.rows);
+    //src = src(ROI);
+    
+    Mat rotationMatrix = cv::getRotationMatrix2D(rect.center, rect.angle, 1);
+    cv::warpAffine(src, output, rotationMatrix, output.size());
+    rect.angle = 0;
+    Rect ROI = rect.boundingRect();
+    if(ROI.x < 0) ROI.x = 0;
+    if(ROI.x > output.cols) ROI.x = output.cols - 1;
+    if(ROI.x + ROI.width > output.cols) ROI.width = output.cols - ROI.x;
+    if(ROI.y < 0) ROI.y = 0;
+    if(ROI.y > output.rows) ROI.y = output.rows - 1;
+    if(ROI.y + ROI.height > output.rows) ROI.height = output.rows - ROI.y;
+    
+    //rectangle(output, ROI, Scalar(255,0,0));
+    //Rect bounds = Rect(0, 0, output.cols, output.rows);
+    output = output(ROI);
+    return output;
+}
 
 void region_detection::loadColourData()
 {

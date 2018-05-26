@@ -48,7 +48,8 @@ private:
     int combineMat(Mat &src, Mat img2);
     int detectEdge(Mat &src, bool blur=true);
     Mat filterImg(Mat input, Scalar min, Scalar max, string name="");
-
+    
+    Mat cropToRotatedRect(Mat src, RotatedRect rect);
     
 public:
     void loadColourData();
