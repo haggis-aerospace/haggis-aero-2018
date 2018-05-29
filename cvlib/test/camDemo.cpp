@@ -20,10 +20,7 @@ int main(int argc, char** argv ) {
     while(true){
         VideoCapture cap = VideoCapture(0);
         Mat frame;
-        //for(int i=0; i<1000; i++)
-        //    cap.grab();
-        //cap >> frame;
-        //clock_t last_cycle = clock();
+
         unsigned int counter = 0;
         cap >> frame;
         while(frame.data)
@@ -31,12 +28,8 @@ int main(int argc, char** argv ) {
             resize(frame, frame, Size(320,240),0,0);
             cap >> frame;
             counter++;
-        //    cout << "Frame: " << counter << endl;
-            rd.findRegion(frame);
 
-       //     clock_t next_cycle = clock();
-       //     double duration = (next_cycle - last_cycle) / CLOCKS_PER_SEC;
-       //     usleep((70000 - duration*1000));
+            rd.findRegion(frame);
         }
     }
 }
