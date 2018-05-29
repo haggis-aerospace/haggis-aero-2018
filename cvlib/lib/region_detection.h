@@ -19,18 +19,6 @@ using namespace std;
 
 colourData colours;
 
-
-struct Letter {
-    char letter = '~';
-    int width = 0;    //Size of bounding box
-    int height = 0;
-    int x = 0;
-    int y = 0;
-    int pos = 0;     //Horizontal position as % from left of image
-    int avSize = 0; //Average size
-};
-
-
 class region_detection
 {
 private:
@@ -53,7 +41,7 @@ private:
     
 public:
     void loadColourData();
-    Mat findRegion( Mat src );
+    Mat findRegion( Mat src, std::pair<int,int> *coords = 0);
     region_detection();
     ~region_detection();
 };

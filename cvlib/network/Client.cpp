@@ -14,7 +14,9 @@ TCPStream::TCPStream(){}
 
 void TCPStream::connect(const string servAddress, unsigned short servPort, UDPStream *vidStream)
 {
-    camLib library;
+    region_detection regDetect;
+    letter_detection ltrDetect;
+    
     while(true){
         try {
             //Initilize connection to server
@@ -26,7 +28,9 @@ void TCPStream::connect(const string servAddress, unsigned short servPort, UDPSt
             while(true)
             {
                 Mat src = vidStream->getLastFrame();
-                Letter ltr = library.findLetter(src);
+                pair<int, int> coords;
+                Mat region = regDetect.findRegion(src, &coords);
+                Letter ltr = ltrDetect.findLetter(region);
                 ss.clear();
                 ss.str(string());
                 ss << ltr.letter
@@ -34,8 +38,8 @@ void TCPStream::connect(const string servAddress, unsigned short servPort, UDPSt
                     << "," << to_string(ltr.height)
                     << "," << to_string(ltr.x)
                     << "," << to_string(ltr.y)
-                    << "," << to_string(ltr.pos)
-                    << "," << to_string(ltr.avSize);
+                    << "," << to_string(src.cols)
+                    << "," << to_string(src.rows);
                 
                 string toSend = ss.str();
                 const char *buffer = toSend.c_str();

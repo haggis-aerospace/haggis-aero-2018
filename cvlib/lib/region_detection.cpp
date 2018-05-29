@@ -77,10 +77,11 @@ int region_detection::combineMat(Mat &src, Mat img2)
 
 /**
  * @brief Takes in mat, processes it to find region likely containing letter
- * @param src
+ * @param src: input image
+ * @param coords: pair pointer to store region center coords in, optional
  * @return 
  */
-Mat region_detection::findRegion( Mat src )
+Mat region_detection::findRegion( Mat src, std::pair<int,int> *coords)
 {
     if(valueChanged)
         loadColourData();
@@ -146,14 +147,15 @@ Mat region_detection::findRegion( Mat src )
     letterRegion = cropToRotatedRect(src, rr);
     imshow("Letter", letterRegion);
     imshow("Region", src);
+    
+    if(coords)
+    {
+        int regionX = rr.center.x;
+        int regionY = rr.center.y;
+        *coords = std::make_pair(rr.center.x,rr.center.y);
+    }
+    
     cv::waitKey(1);
-
-    /*letterOut.letter = '~';
-    letterOut.width = region.width;
-    letterOut.height = region.height;
-    letterOut.x = ((double)region.x+((double)region.width/2.0)) / (double)src.cols * 100.0;
-    letterOut.y = ((double)region.y+((double)region.height/2.0)) / (double)src.rows * 100.0;
-    */
     return letterRegion;
 }
 
@@ -179,27 +181,10 @@ void region_detection::drawRotatedRect(Mat src, RotatedRect rect)
 Mat region_detection::cropToRotatedRect(Mat src, cv::RotatedRect rect)
 {
     Mat output(src.rows, src.cols, CV_8UC3, Scalar(0, 0, 0));
-    /*Rect ROI = rect.boundingRect();
-    if(ROI.height > ROI.width){
-        if(ROI.x + ROI.height > src.cols){
-            ROI = Rect(ROI.x, ROI.y, src.cols - ROI.x, ROI.height );
-        }else{
-            ROI = Rect(ROI.x, ROI.y, ROI.height, ROI.height );
-        }
-    }else{
-        if(ROI.y + ROI.width > src.rows){
-            ROI = Rect(ROI.x, ROI.y, ROI.width, src.rows - ROI.y );
-        }else{
-            ROI = Rect(ROI.x, ROI.y, ROI.width, ROI.width );
-        }
-    }*/
-        
-    //Rect bounds(0,0,src.cols,src.rows);
-    //src = src(ROI);
-    
     Mat rotationMatrix = cv::getRotationMatrix2D(rect.center, rect.angle, 1);
     cv::warpAffine(src, output, rotationMatrix, output.size());
     rect.angle = 0;
+    
     Rect ROI = rect.boundingRect();
     if(ROI.x < 0) ROI.x = 0;
     if(ROI.x > output.cols) ROI.x = output.cols - 1;
@@ -207,10 +192,8 @@ Mat region_detection::cropToRotatedRect(Mat src, cv::RotatedRect rect)
     if(ROI.y < 0) ROI.y = 0;
     if(ROI.y > output.rows) ROI.y = output.rows - 1;
     if(ROI.y + ROI.height > output.rows) ROI.height = output.rows - ROI.y;
-    
-    //rectangle(output, ROI, Scalar(255,0,0));
-    //Rect bounds = Rect(0, 0, output.cols, output.rows);
     output = output(ROI);
+    
     return output;
 }
 
