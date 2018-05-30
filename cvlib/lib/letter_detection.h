@@ -1,11 +1,13 @@
-#include <opencv2/opencv.hpp>
-#include <iostream>
+#include <tesseract/baseapi.h>
+#include <leptonica/allheaders.h>
+//#include <opencv2/opencv.hpp>
+//#include <iostream>
 
 #ifndef LETTER_DETECTION_H
 #define LETTER_DETECTION_H
 
-using namespace std;
-using namespace cv;
+//using namespace std;
+//using namespace cv;
 
 struct Letter {
     char letter = '~';  //Letter as found by tesseract
@@ -19,11 +21,13 @@ struct Letter {
 class letter_detection
 {
     
+private:
+    //tesseract::TessBaseAPI *api = new tesseract::TessBaseAPI();
+
     
 public:
     
-    Letter findLetter(cv::Mat region);
-    
+    //Letter findLetter(cv::Mat region, int *accuracy = 0);
     
     letter_detection();
     ~letter_detection();

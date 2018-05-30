@@ -10,7 +10,7 @@
 #include <X11/Xlib.h>
 #include <sys/time.h>
 
-using namespace std;
+//using namespace std;
 using namespace cv;
 
 

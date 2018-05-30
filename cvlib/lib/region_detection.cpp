@@ -1,7 +1,6 @@
 #include "region_detection.h"
 #include <regex>
 #include <vector>
-
 using namespace std;
 using namespace cv;
 
@@ -21,7 +20,7 @@ region_detection::region_detection(){
         moveWindow("White", 100,100+240);
     namedWindow("Red", 1);
         moveWindow("Red", 100+320,100+240);
-
+        
 }
 region_detection::~region_detection(){}
 
