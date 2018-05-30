@@ -5,6 +5,11 @@
 using namespace std;
 using namespace cv;
 
+
+/**
+ * @brief Initilize UI windows in constructor
+ * @return 
+ */
 region_detection::region_detection(){ 
     initTrackbars();
     loadColourData();
@@ -75,6 +80,7 @@ int region_detection::combineMat(Mat &src, Mat img2)
     return 0;
 }
 
+
 /**
  * @brief Takes in mat, processes it to find region likely containing letter
  * @param src: input image
@@ -142,12 +148,14 @@ Mat region_detection::findRegion( Mat src, std::pair<int,int> *coords)
         return letterRegion;
     }
     
+    
     RotatedRect rr = minAreaRect(contoursH.at(maxIndex));
     drawRotatedRect(src, rr);
     letterRegion = cropToRotatedRect(src, rr);
     imshow("Letter", letterRegion);
     imshow("Region", src);
     
+    //If pointer provided in args, store coords
     if(coords)
     {
         int regionX = rr.center.x;
