@@ -17,7 +17,8 @@ using namespace cv;
 
 int main(int argc, char** argv ) {
     region_detection rd;
-
+    letter_detection ld;
+    
     while(true){
         VideoCapture cap = VideoCapture(0);
         Mat frame;
@@ -30,7 +31,7 @@ int main(int argc, char** argv ) {
             cap >> frame;
             counter++;
 
-            rd.findRegion(frame);
+            ld.findLetter(rd.findRegion(frame));
         }
     }
 }

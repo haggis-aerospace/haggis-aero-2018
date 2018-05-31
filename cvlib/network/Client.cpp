@@ -133,6 +133,7 @@ void UDPStream::connect(string servAddress, unsigned short servPort)
                             std::time_t time = chrono::system_clock::to_time_t(chrono::system_clock::now());
                             string fileName = " downStream.avi";
                             fileName = ctime(&time) + fileName;
+                            fileName = fileName.replace(fileName.begin(), fileName.end(),' ','-');
                             system("mkdir videos");
                             writer.open("videos/" + fileName, CV_FOURCC('M','J','P','G'), FRAME_RATE, Size(frame.cols, frame.rows));
                         }

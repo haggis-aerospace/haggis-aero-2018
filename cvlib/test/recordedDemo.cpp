@@ -22,6 +22,8 @@ int main(int argc, char** argv ) {
     }
 
     region_detection rd;
+    letter_detection ld;
+    int *accuracy = new int();
 
     int startFrame = 0;
     int endFrame = -1;
@@ -50,8 +52,9 @@ int main(int argc, char** argv ) {
             resize(frame, frame, Size(320,240),0,0);
             counter++;
             cout << "Frame: " << counter << endl;
-            rd.findRegion(frame);
-
+            Mat region = rd.findRegion(frame);
+            ld.findLetter(region, accuracy);
+            cout << "Accuracy: " << *accuracy << endl;
             clock_t next_cycle = clock();
             double duration = (next_cycle - last_cycle) / CLOCKS_PER_SEC * 1000;
             usleep(((1000000/fps) - duration*1000));

@@ -23,7 +23,9 @@ class letter_detection
     
 private:
     tesseract::TessBaseAPI api;
-
+    void tessMatToPix(Mat src);
+    Mat filterRegion(Mat src);
+    Mat prepareRegion(Mat src);
     
 public:
     
@@ -33,5 +35,6 @@ public:
     ~letter_detection();
 
 };
+
 
 #endif // LETTER_DETECTION_H

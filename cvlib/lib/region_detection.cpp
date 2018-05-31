@@ -113,7 +113,10 @@ Mat region_detection::findRegion( Mat src, std::pair<int,int> *coords)
     medianBlur(whiteMat, whiteMat, 7);
     imshow("White", whiteMat);
     cv::waitKey(1);
-
+    
+    Mat redOrig;
+    redMat.copyTo(redOrig);
+    
     detectEdge(whiteMat, false);
     detectEdge(redMat, false);
 
@@ -150,7 +153,7 @@ Mat region_detection::findRegion( Mat src, std::pair<int,int> *coords)
     
     RotatedRect rr = minAreaRect(contoursH.at(maxIndex));
     drawRotatedRect(src, rr);
-    letterRegion = cropToRotatedRect(src, rr);
+    letterRegion = cropToRotatedRect(redOrig, rr);
     imshow("Letter", letterRegion);
     imshow("Region", src);
     
