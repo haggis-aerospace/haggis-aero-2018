@@ -1,22 +1,22 @@
 #include "letter_detection.h"
 
-//using namespace std;
-//using namespace cv;
+using namespace std;
+using namespace cv;
 
 letter_detection::letter_detection()
 {
-    //if (api->Init(NULL, "eng"))
-    //{
-            //std::cout << "Error Initilizing Tesseract" << std::endl;
-            //exit(1);
-    //}
+    if (api.Init(NULL, "eng"))
+    {
+            std::cout << "Error Initilizing Tesseract" << std::endl;
+            exit(1);
+    }
 }
 
 letter_detection::~letter_detection()
 {
 }
 
-/*Letter letter_detection::findLetter(cv::Mat src, int *accuracy)
+Letter letter_detection::findLetter(cv::Mat src, int *accuracy)
 {
     Letter letter;
     
@@ -34,4 +34,4 @@ letter_detection::~letter_detection()
     cv::waitKey(1);
     
     return letter;
-}*/
+}

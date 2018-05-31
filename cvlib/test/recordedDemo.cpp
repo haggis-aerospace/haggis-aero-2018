@@ -1,3 +1,4 @@
+#include "library.h"
 #include <unistd.h>
 #include <sstream>
 #include <iostream>
@@ -6,7 +7,6 @@
 #include <thread>
 #include <stdio.h>
 #include <string.h>
-#include "library.h"
 #include <X11/Xlib.h>
 #include <sys/time.h>
 

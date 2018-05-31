@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstdlib>
 
+
 using namespace std;
 using namespace cv;
 
@@ -28,9 +29,11 @@ void TCPStream::connect(const string servAddress, unsigned short servPort, UDPSt
             while(true)
             {
                 Mat src = vidStream->getLastFrame();
+                
                 pair<int, int> coords;
                 Mat region = regDetect.findRegion(src, &coords);
                 Letter ltr = ltrDetect.findLetter(region);
+                
                 ss.clear();
                 ss.str(string());
                 ss << ltr.letter

@@ -1,6 +1,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "library.h"
+
 #include "PracticalSocket.h" // For UDPSocket and SocketException
 #include <iostream>          // For cout and cerr
 #include <cstdlib>           // For atoi()
@@ -11,7 +13,6 @@
 #include "opencv2/opencv.hpp"
 #include "config.h"
 #include <errno.h>
-#include "library.h"
 #include <thread>
 #include <stdio.h>
 #include <string.h>
@@ -25,8 +26,7 @@ class Client
 private:
 
 public:
-    //TCPStream tcpStream;
-    //UDPStream udpStream;
+
 };
 
 

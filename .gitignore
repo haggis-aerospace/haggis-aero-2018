@@ -24,3 +24,5 @@ cvlib/test/trained_classifierNM2\.xml
 *.gch
 
 *.swp
+
+tessTest/

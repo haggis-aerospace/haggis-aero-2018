@@ -1,3 +1,6 @@
+#include <tesseract/baseapi.h>
+#include <leptonica/allheaders.h>
+
 #include "region_detection.h"
 #include "letter_detection.h"
 
