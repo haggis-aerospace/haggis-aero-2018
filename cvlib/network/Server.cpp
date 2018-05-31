@@ -34,8 +34,8 @@ int main(int argc, char * argv[]) {
                 recvMsgSize = sock.recvFrom(buffer, BUF_LEN, clientAddress, clientPort);
             } while (recvMsgSize > sizeof(int));
             
-            if(loops < 20)
-                continue;
+            //if(loops < 20)
+            //    continue;
                 
             cout << "Server: Client connected" << endl;
             
