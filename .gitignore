@@ -24,3 +24,9 @@ cvlib/test/trained_classifierNM2\.xml
 *.gch
 
 *.swp
+
+*.tags
+
+drone/\.codelite/
+
+*.workspace
