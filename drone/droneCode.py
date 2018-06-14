@@ -10,6 +10,7 @@ from tcpServer import Server
 # from binding import lib as Clib
 # from binding import Letter
 
+usb = False
 
 nav = None
 vehicle = None
@@ -28,36 +29,58 @@ def main(rotation=False, goTo=False, run=False, alt=False):
     print " Mode: %s" % vehicle.mode.name    # settable
 
     #Limit vehicles speed (m/s)
-    vehicle.airspeed = 1
-    vehicle.groundspeed = 1
+    vehicle.airspeed = 25
+    vehicle.groundspeed = 25
     print "Max Speed Set"
 
     #Loop contains all instructions drone will execute
     while True:
 
         #Wait for mode to be set to guided
-        while vehicle.mode.name != "GUIDED" or vehicle.armed == False:
+        while (vehicle.mode.name != "GUIDED" and vehicle.mode.name != "AUTO") or vehicle.armed == False:
             time.sleep(2)
             print "Waiting for Arm in Guided..."
-        #if vehicle.armed == False: # Arm drone and climb to 10m once in guided mode
-        #    print "Arming..."
-        #    nav.arm_and_takeoff(2)
 
         #Main Program execution code
-        if vehicle.mode.name == "GUIDED":
+        if vehicle.mode.name == "GUIDED" or vehicle.mode.name == "AUTO":
+            print str(vehicle.heading)
+            command = raw_input("> ")
+            if command == "left":
+                vehicle.mode = dronekit.VehicleMode('GUIDED')
+                vehicle.flush()
+                time.sleep(1)
+                nav.plane_yaw(-25, dist=3000)
+                vehicle.flush()
+            elif command == "right":
+                vehicle.mode = dronekit.VehicleMode('GUIDED')
+                vehicle.flush()
+                time.sleep(1)
+                nav.plane_yaw(25, dist=3000)
+                vehicle.flush()
+            elif command == "yaw":
+                vehicle.mode = dronekit.VehicleMode('GUIDED')
+                vehicle.flush()
+                time.sleep(1)
+                angle = input("   angle> ")
+                nav.plane_yaw(angle, dist=3000, relative=False)
+                vehicle.flush()
+            elif command == "auto":
+                vehicle.mode = dronekit.VehicleMode('AUTO')
+            else:
+                print "Command not recognised\n"
             #Test code
-            letter = server.getLastLetter()
-            if letter.width > 0 and letter.height > 0:
-                if(rotation):
-                    lookAtLetter()
-                if(goTo):
-                    gotoLetter()
-                elif(run):
-                    runFromLetter()
-                if(alt):
-                    letterHeight()
-
-            time.sleep(0.2)
+            #letter = server.getLastLetter()
+            #if letter.width > 0 and letter.height > 0:
+            #    if(rotation):
+            #        lookAtLetter()
+            #    if(goTo):
+            #        gotoLetter()
+            #    elif(run):
+            #        runFromLetter()
+            #    if(alt):
+            #        letterHeight()
+            #
+            #time.sleep(0.2)
         else:
             time.sleep(3) #If not in guided mode, wait
 
@@ -143,14 +166,19 @@ def initilize(rotation=True,goTo=False, run=False,alt=False):
 
     try:
         print "Connecting to vehicle..."
-        vehicle = connect('/dev/ttyACM0', wait_ready=True,baud=57600)  # Connect to vehicle and initialize home location
-        # vehicle = connect('127.0.0.1:14550', wait_ready=True)  #Connect to vehicle and initialize home location
+        if usb:
+            vehicle = connect('/dev/ttyACM0', wait_ready=True,baud=57600)  # Connect to vehicle and initialize home location
+        else:
+            vehicle = connect('127.0.0.1:14550', wait_ready=True)  #Connect to vehicle and initialize home location
+            print "Local connection\n"
+
         vehicle.home_location = vehicle.location.global_frame
 
-        print "Waiting for client to connect..."
-        server = Server("127.0.0.1", 5463)
-        while not server.isClientActive():
-            time.sleep(1)
+
+        #print "Waiting for client to connect..."
+        #server = Server("127.0.0.1", 5463)
+        #while not server.isClientActive():
+        #    time.sleep(1)
 
         print "\nInitializing navigation"
         nav = NavClass(vehicle)

@@ -196,6 +196,137 @@ class NavClass:
         return math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
 
 
+    def get_location_meters_angle(self, original_location, angle, dist):
+        global vehicle
+        dNorth = 0
+        dEast = 0
+
+        quartet = angle / 90
+        print "Quartet: ", quartet
+
+        if angle % 90 == 0:
+            print "0 based"
+            if quartet == 0:
+                dNorth = dist
+            elif quartet == 1:
+                dEast = dist
+            elif quartet == 2:
+                dNorth = dist*-1
+            elif quartet == 3:
+                dEast = dist*-1
+        else:
+            quartet = math.floor(quartet)
+            tmpHeading = angle
+            if quartet > 0:
+                tmpHeading = tmpHeading / (quartet+1)
+            print "tmpHeading: ", tmpHeading
+            tmpHeading = math.radians(tmpHeading)
+            if quartet == 0:
+                dNorth = math.sin(tmpHeading) * dist
+                dEast = math.cos(tmpHeading) * dist
+            elif quartet == 1:
+                dNorth = math.sin(tmpHeading) * dist
+                dNorth = dNorth * -1
+                dEast = math.cos(tmpHeading) * dist
+            elif quartet == 2:
+                dNorth = math.sin(tmpHeading) * dist
+                dNorth = dNorth * -1
+                dEast = math.cos(tmpHeading) * dist
+                dEast = dEast * -1
+            elif quartet == 3:
+                dNorth = math.sin(tmpHeading) * dist
+                dEast = math.cos(tmpHeading) * dist
+                dEast = dEast * -1
+
+        targetLocation = self.get_location_metres(original_location, dNorth, dEast)
+        print "Distance Change: ", dNorth, ", ", dEast
+        return targetLocation
+
+
+
+
+    def plane_yaw(self, heading, accuracy=3, dist=500, relative=True):
+        global vehicle
+
+        """
+        Adjusts the vehicles heading to desired angle relative to current angle
+        determined by the relative param
+        Works by setting new waypoint in the distance at desired angle then waiting for
+        APM to adjust course before removing waypoint
+        :param heading:
+        :return:
+        """
+
+
+        if heading >= 360 or heading <= -360:
+            print "Heading Adjust: Error, angle too great"
+            return
+
+        if relative:
+            newHeading = vehicle.heading + heading
+        else:
+            newHeading = heading
+
+
+        if newHeading < 0:
+            newHeading = 360 + newHeading
+
+
+        if newHeading > 360:
+            newHeading = newHeading - 360
+
+        alt = vehicle.location.global_frame.alt
+
+        targetLocation = self.get_location_meters_angle(vehicle.location.global_frame, newHeading, 100)
+        targetLocation.alt = alt
+
+
+        lastHeading = 0
+        headingSameCounter = 0
+
+        print "Turning to heading " + str(newHeading)
+        vehicle.simple_goto(targetLocation)
+        time.sleep(2)
+        while vehicle.mode.name == "GUIDED":  # Stop action if we are no longer in guided mode.
+            remainingDistance = self.get_distance_metres(vehicle.location.global_frame, targetLocation)
+            headingDifference = vehicle.heading - newHeading
+            if headingDifference < 0:
+                headingDifference = headingDifference * -1
+            if headingDifference > 180:
+                headingDifference = 180-(headingDifference - 180)
+
+            if vehicle.heading == lastHeading:
+                headingSameCounter = headingSameCounter+1
+
+            lastHeading = vehicle.heading
+
+            print "Heading: ", str(vehicle.heading)
+            print "Heading difference: ", str(headingDifference), "   Distance to target: ", remainingDistance
+            if headingDifference < accuracy:
+                print "New heading reached"
+                targetLocation = self.get_location_meters_angle(vehicle.location.global_frame, newHeading, dist)
+                targetLocation.alt = alt
+                vehicle.simple_goto(targetLocation)
+                #time.sleep(7)
+                #vehicle.simple_goto(self.get_location_meters_angle(vehicle.location.global_frame, vehicle.heading, 1000))
+                break;
+
+            if remainingDistance < 30:
+                targetLocation = self.get_location_meters_angle(vehicle.location.global_frame, newHeading, 100)
+                targetLocation.alt = alt
+                vehicle.simple_goto(targetLocation)
+
+            if remainingDistance <= dist * .05 or headingSameCounter > 10:
+                print "Heading change failed"
+                targetLocation = self.get_location_meters_angle(vehicle.location.global_frame, vehicle.heading, dist)
+                targetLocation.alt = alt
+                vehicle.simple_goto(targetLocation)
+                break;
+            time.sleep(0.5)
+
+
+
+
     def condition_yaw(self, heading, relative=False):
         global vehicle
 
